@@ -18,7 +18,7 @@ Source0:        https://github.com/facebook/folly/releases/download/v%{version}/
 Patch0:         folly-v%{version}-fix_docs.patch
 
 # Folly is known not to work on big-endian CPUs
-# will file a proper blocking bug once this is imported
+# https://bugzilla.redhat.com/show_bug.cgi?id=1892151
 ExcludeArch:    s390x
 
 BuildRequires:  cmake
