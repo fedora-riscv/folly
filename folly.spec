@@ -8,7 +8,7 @@
 
 Name:           folly
 Version:        2020.10.26.00
-Release:        1%{?dist}
+Release:        1%{?dist}.1
 Summary:        An open-source C++ library developed and used at Facebook
 
 License:        ASL 2.0
@@ -90,7 +90,7 @@ Requires:       libdwarf-devel%{?_isa}
 Requires:       libevent-devel%{?_isa}
 Requires:       libsodium-devel%{?_isa}
 Requires:       libunwind-devel%{?_isa}
-Requires:       liburing-devel%{?_isa} >= 0.7-3
+Requires:       liburing-devel%{?_isa} >= 0.7-2
 Requires:       libzstd-devel%{?_isa}
 Requires:       lz4-devel%{?_isa}
 Requires:       openssl-devel%{?_isa}
@@ -193,6 +193,9 @@ find $RPM_BUILD_ROOT -name '*.la' -exec rm -f {} ';'
 
 
 %changelog
+* Wed Oct 28 2020 Michel Alexandre Salim <salimma@fedoraproject.org> - 2020.10.26.00-1.1
+- Lower needed version of liburing to 0.7-2 for f32
+
 * Mon Oct 26 2020 Michel Alexandre Salim <salimma@fedoraproject.org> - 2020.10.26.00-1
 - Update to 2020.10.26.00
 - Build docs
