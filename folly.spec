@@ -42,8 +42,8 @@ BuildRequires:  libdwarf-devel
 BuildRequires:  libevent-devel
 BuildRequires:  libsodium-devel
 BuildRequires:  libunwind-devel
-# 0.7-3 fixes build on armv7hl
-BuildRequires:  liburing-devel >= 0.7-3
+# 0.7-2 fixes build on armv7hl
+BuildRequires:  liburing-devel >= 0.7-2
 BuildRequires:  libzstd-devel
 BuildRequires:  lz4-devel
 BuildRequires:  openssl-devel
