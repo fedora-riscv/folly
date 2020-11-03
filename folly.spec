@@ -4,18 +4,16 @@
 # fixed_string_test fails with "error: non-constant condition for static assertion"
 %bcond_with tests
 
-%global _shared_builddir shared_build
+%global _static_builddir static_build
 
 Name:           folly
-Version:        2020.10.26.00
+Version:        2020.11.02.00
 Release:        1%{?dist}
 Summary:        An open-source C++ library developed and used at Facebook
 
 License:        ASL 2.0
 URL:            https://github.com/facebook/folly
 Source0:        https://github.com/facebook/folly/releases/download/v%{version}/folly-v%{version}.tar.gz
-# These patches can be dropped once the next release of Folly is out
-Patch0:         folly-v%{version}-fix_docs.patch
 
 # Folly is known not to work on big-endian CPUs
 # https://bugzilla.redhat.com/show_bug.cgi?id=1892151
@@ -126,9 +124,7 @@ developing applications that use %{name}.
 
 
 %build
-mkdir %{_shared_builddir} 
-pushd %{_shared_builddir}
-%cmake .. \
+%cmake \
   -DBUILD_SHARED_LIBS=ON \
 %if %{with python}
   -DPYTHON_EXTENSIONS=ON \
@@ -136,32 +132,34 @@ pushd %{_shared_builddir}
   -DCMAKE_INSTALL_DIR=%{_libdir}/cmake/%{name} \
   -DPACKAGE_VERSION=%{version}
 %cmake_build
-popd
 
 # static build
+mkdir %{_static_builddir}
+pushd %{_static_builddir}
 # let's build tests only in the static build since that's what upstream recommends anyway
 %if %{with tests}
-%cmake \
+%cmake .. \
   -DBUILD_TESTS=ON \
 %else
-%cmake \
+%cmake .. \
 %endif
   -DBUILD_SHARED_LIBS=OFF \
   -DCMAKE_INSTALL_DIR=%{_libdir}/cmake/%{name}-static \
   -DPACKAGE_VERSION=%{version}
 %cmake_build
+popd
 
 # Build documentation
 make -C folly/docs
 
 
 %install
-# shared build
-pushd %{_shared_builddir}
+# static build
+pushd %{_static_builddir}
 %cmake_install
 popd
 
-# static build
+# shared build
 %cmake_install
 
 find $RPM_BUILD_ROOT -name '*.la' -exec rm -f {} ';'
@@ -169,7 +167,9 @@ find $RPM_BUILD_ROOT -name '*.la' -exec rm -f {} ';'
 
 %if %{with tests}
 %check
+pushd %{_static_builddir}
 %ctest
+popd
 %endif
 
 
@@ -193,6 +193,9 @@ find $RPM_BUILD_ROOT -name '*.la' -exec rm -f {} ';'
 
 
 %changelog
+* Mon Nov  2 2020 Michel Alexandre Salim <salimma@fedoraproject.org> - 2020.11.02.00-1
+- Update to 2020.11.02.00
+
 * Mon Oct 26 2020 Michel Alexandre Salim <salimma@fedoraproject.org> - 2020.10.26.00-1
 - Update to 2020.10.26.00
 - Build docs
