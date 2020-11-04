@@ -124,15 +124,6 @@ developing applications that use %{name}.
 
 
 %build
-%cmake \
-  -DBUILD_SHARED_LIBS=ON \
-%if %{with python}
-  -DPYTHON_EXTENSIONS=ON \
-%endif
-  -DCMAKE_INSTALL_DIR=%{_libdir}/cmake/%{name} \
-  -DPACKAGE_VERSION=%{version}
-%cmake_build
-
 # static build
 mkdir %{_static_builddir}
 pushd %{_static_builddir}
@@ -148,6 +139,15 @@ pushd %{_static_builddir}
   -DPACKAGE_VERSION=%{version}
 %cmake_build
 popd
+
+%cmake \
+  -DBUILD_SHARED_LIBS=ON \
+%if %{with python}
+  -DPYTHON_EXTENSIONS=ON \
+%endif
+  -DCMAKE_INSTALL_DIR=%{_libdir}/cmake/%{name} \
+  -DPACKAGE_VERSION=%{version}
+%cmake_build
 
 # Build documentation
 make -C folly/docs
