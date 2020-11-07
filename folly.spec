@@ -1,5 +1,5 @@
 # executor_api.h does not seem to get generated
-%bcond_with python
+%bcond_without python
 
 # fixed_string_test fails with "error: non-constant condition for static assertion"
 %bcond_with tests
@@ -8,12 +8,14 @@
 
 Name:           folly
 Version:        2020.11.02.00
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        An open-source C++ library developed and used at Facebook
 
 License:        ASL 2.0
 URL:            https://github.com/facebook/folly
 Source0:        https://github.com/facebook/folly/releases/download/v%{version}/folly-v%{version}.tar.gz
+# Honor DESTDIR when installing Python extension
+Patch0:         %{name}-py_destdir.patch
 
 # Folly is known not to work on big-endian CPUs
 # https://bugzilla.redhat.com/show_bug.cgi?id=1892151
@@ -48,6 +50,7 @@ BuildRequires:  openssl-devel
 %if %{with python}
 BuildRequires:  python3-Cython
 BuildRequires:  python3-devel
+BuildRequires:  python3-wheel
 %endif
 BuildRequires:  snappy-devel
 BuildRequires:  xz-devel
@@ -110,6 +113,16 @@ Requires:       %{name} = %{version}-%{release}
 The %{name}-docs package contains documentation for %{name}.
 
 
+%if %{with python}
+%package -n python3-%{name}
+Summary:        Python bindings for %{name}
+Requires:       %{name}%{?_isa} = %{version}-%{release}
+
+%description -n python3-%{name}
+The python3-%{name} package contains Python bindings for %{name}.
+%endif
+
+
 %package        static
 Summary:        Static development libraries for %{name}
 Requires:       %{name}-devel%{?_isa} = %{version}-%{release}
@@ -121,6 +134,12 @@ developing applications that use %{name}.
 
 %prep
 %autosetup -c -p1
+%if %{with python}
+# this file gets cached starting in 841d5087eda926eac1cb17c4683fd48b247afe50
+# but it depends on executor_api.h which is generated alongside executor.cpp
+# delete this file so we regenerate both and allow the Python extension to be built
+rm folly/python/executor.cpp
+%endif
 
 
 %build
@@ -136,7 +155,8 @@ pushd %{_static_builddir}
 %endif
   -DBUILD_SHARED_LIBS=OFF \
   -DCMAKE_INSTALL_DIR=%{_libdir}/cmake/%{name}-static \
-  -DPACKAGE_VERSION=%{version}
+  -DPACKAGE_VERSION=%{version} \
+  -DPYTHON_EXTENSIONS=OFF
 %cmake_build
 popd
 
@@ -161,6 +181,11 @@ popd
 
 # shared build
 %cmake_install
+
+%if %{with python}
+# these should not be packaged
+rm %{buildroot}/%{python3_sitearch}/%{name}/*.{h,pxd}
+%endif
 
 find $RPM_BUILD_ROOT -name '*.la' -exec rm -f {} ';'
 
@@ -187,12 +212,21 @@ popd
 %files docs
 %doc folly/docs/*.html
 
+%if %{with python}
+%files -n python3-%{name}
+%{python3_sitearch}/%{name}
+%{python3_sitearch}/%{name}-0.0.1-py%{python3_version}.egg-info
+%endif
+
 %files static
 %{_libdir}/*.a
 %{_libdir}/cmake/%{name}-static
 
 
 %changelog
+* Fri Nov  6 2020 Michel Alexandre Salim <salimma@fedoraproject.org> - 2020.11.02.00-2
+- Enable Python bindings by default
+
 * Mon Nov  2 2020 Michel Alexandre Salim <salimma@fedoraproject.org> - 2020.11.02.00-1
 - Update to 2020.11.02.00
 
