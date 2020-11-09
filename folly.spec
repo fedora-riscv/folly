@@ -7,8 +7,8 @@
 %global _static_builddir static_build
 
 Name:           folly
-Version:        2020.11.02.00
-Release:        2%{?dist}
+Version:        2020.11.09.00
+Release:        1%{?dist}
 Summary:        An open-source C++ library developed and used at Facebook
 
 License:        ASL 2.0
@@ -224,6 +224,9 @@ popd
 
 
 %changelog
+* Mon Nov  9 2020 Michel Alexandre Salim <salimma@fedoraproject.org> - 2020.11.09.00-1
+- Update to 2020.11.09.00
+
 * Fri Nov  6 2020 Michel Alexandre Salim <salimma@fedoraproject.org> - 2020.11.02.00-2
 - Enable Python bindings by default
 
