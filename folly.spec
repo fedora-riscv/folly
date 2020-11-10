@@ -8,7 +8,7 @@
 
 Name:           folly
 Version:        2020.11.09.00
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        An open-source C++ library developed and used at Facebook
 
 License:        ASL 2.0
@@ -16,6 +16,8 @@ URL:            https://github.com/facebook/folly
 Source0:        https://github.com/facebook/folly/releases/download/v%{version}/folly-v%{version}.tar.gz
 # Honor DESTDIR when installing Python extension
 Patch0:         %{name}-py_destdir.patch
+# Install python/executor.h
+Patch1:         %{name}-py_executor_h.patch
 
 # Folly is known not to work on big-endian CPUs
 # https://bugzilla.redhat.com/show_bug.cgi?id=1892151
@@ -47,11 +49,6 @@ BuildRequires:  liburing-devel >= 0.7-3
 BuildRequires:  libzstd-devel
 BuildRequires:  lz4-devel
 BuildRequires:  openssl-devel
-%if %{with python}
-BuildRequires:  python3-Cython
-BuildRequires:  python3-devel
-BuildRequires:  python3-wheel
-%endif
 BuildRequires:  snappy-devel
 BuildRequires:  xz-devel
 BuildRequires:  zlib-devel
@@ -116,10 +113,23 @@ The %{name}-docs package contains documentation for %{name}.
 %if %{with python}
 %package -n python3-%{name}
 Summary:        Python bindings for %{name}
+BuildRequires:  python3-devel
+BuildRequires:  python3dist(cython)
+BuildRequires:  python3dist(wheel)
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 
 %description -n python3-%{name}
 The python3-%{name} package contains Python bindings for %{name}.
+
+
+%package -n python3-%{name}-devel
+Summary:        Development files for python3-%{name}
+Requires:       %{name}-devel%{?_isa} = %{version}-%{release}
+Requires:       python3-%{name}%{?_isa} = %{version}-%{release}
+
+%description -n python3-%{name}-devel
+The python3-%{name}-devel package contains libraries and header files for
+developing applications that use python3-%{name}.
 %endif
 
 
@@ -182,11 +192,6 @@ popd
 # shared build
 %cmake_install
 
-%if %{with python}
-# these should not be packaged
-rm %{buildroot}/%{python3_sitearch}/%{name}/*.{h,pxd}
-%endif
-
 find $RPM_BUILD_ROOT -name '*.la' -exec rm -f {} ';'
 
 
@@ -208,6 +213,7 @@ popd
 %{_libdir}/*.so
 %{_libdir}/cmake/%{name}
 %{_libdir}/pkgconfig/lib%{name}.pc
+%exclude %{_includedir}/folly/python
 
 %files docs
 %doc folly/docs/*.html
@@ -216,6 +222,13 @@ popd
 %files -n python3-%{name}
 %{python3_sitearch}/%{name}
 %{python3_sitearch}/%{name}-0.0.1-py%{python3_version}.egg-info
+%exclude %{python3_sitearch}/%{name}/*.h
+%exclude %{python3_sitearch}/%{name}/*.pxd
+
+%files -n python3-%{name}-devel
+%{_includedir}/folly/python
+%{python3_sitearch}/%{name}/*.h
+%{python3_sitearch}/%{name}/*.pxd
 %endif
 
 %files static
@@ -224,6 +237,10 @@ popd
 
 
 %changelog
+* Mon Nov  9 2020 Michel Alexandre Salim <salimma@fedoraproject.org> - 2020.11.09.00-2
+- Ship *.{h,pxd} in python3-folly-devel for python3-fbthrift
+- Install python/executor.h
+
 * Mon Nov  9 2020 Michel Alexandre Salim <salimma@fedoraproject.org> - 2020.11.09.00-1
 - Update to 2020.11.09.00
 
