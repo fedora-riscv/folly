@@ -139,7 +139,7 @@ developing applications that use %{name}.
 
 
 %prep
-%autosetup -c -p1
+%autosetup -p1
 %if %{with python}
 # this file gets cached starting in 841d5087eda926eac1cb17c4683fd48b247afe50
 # but it depends on executor_api.h which is generated alongside executor.cpp
