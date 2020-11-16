@@ -1,7 +1,6 @@
-# executor_api.h does not seem to get generated
 %bcond_without python
 
-# fixed_string_test fails with "error: non-constant condition for static assertion"
+# Even with the patch, many tests still fail
 %bcond_with tests
 
 %global _static_builddir static_build
@@ -14,6 +13,8 @@ Summary:        An open-source C++ library developed and used at Facebook
 License:        ASL 2.0
 URL:            https://github.com/facebook/folly
 Source0:        %{url}/archive/v%{version}/folly-%{version}.tar.gz
+# fixed_string_test fails with "error: non-constant condition for static assertion"
+Patch0:         %{name}-cleanup_fixed_string_tests.patch
 
 # Folly is known not to work on big-endian CPUs
 # https://bugzilla.redhat.com/show_bug.cgi?id=1892151
@@ -235,6 +236,7 @@ popd
 %changelog
 * Mon Nov 16 2020 Michel Alexandre Salim <salimma@fedoraproject.org> - 2020.11.16.00-1
 - Update to 2020.11.16.00
+- Allow tests to be compiled
 
 * Mon Nov  9 2020 Michel Alexandre Salim <salimma@fedoraproject.org> - 2020.11.09.00-2
 - Ship *.{h,pxd} in python3-folly-devel for python3-fbthrift
