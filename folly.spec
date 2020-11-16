@@ -7,17 +7,13 @@
 %global _static_builddir static_build
 
 Name:           folly
-Version:        2020.11.09.00
-Release:        2%{?dist}
+Version:        2020.11.16.00
+Release:        1%{?dist}
 Summary:        An open-source C++ library developed and used at Facebook
 
 License:        ASL 2.0
 URL:            https://github.com/facebook/folly
-Source0:        https://github.com/facebook/folly/releases/download/v%{version}/folly-v%{version}.tar.gz
-# Honor DESTDIR when installing Python extension
-Patch0:         %{name}-py_destdir.patch
-# Install python/executor.h
-Patch1:         %{name}-py_executor_h.patch
+Source0:        %{url}/archive/v%{version}/folly-%{version}.tar.gz
 
 # Folly is known not to work on big-endian CPUs
 # https://bugzilla.redhat.com/show_bug.cgi?id=1892151
@@ -237,6 +233,9 @@ popd
 
 
 %changelog
+* Mon Nov 16 2020 Michel Alexandre Salim <salimma@fedoraproject.org> - 2020.11.16.00-1
+- Update to 2020.11.16.00
+
 * Mon Nov  9 2020 Michel Alexandre Salim <salimma@fedoraproject.org> - 2020.11.09.00-2
 - Ship *.{h,pxd} in python3-folly-devel for python3-fbthrift
 - Install python/executor.h
