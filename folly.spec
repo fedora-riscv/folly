@@ -1,19 +1,20 @@
-# executor_api.h does not seem to get generated
-%bcond_with python
+%bcond_without python
 
-# fixed_string_test fails with "error: non-constant condition for static assertion"
+# Even with the patch, many tests still fail
 %bcond_with tests
 
 %global _static_builddir static_build
 
 Name:           folly
-Version:        2020.11.02.00
+Version:        2020.11.16.00
 Release:        1%{?dist}
 Summary:        An open-source C++ library developed and used at Facebook
 
 License:        ASL 2.0
 URL:            https://github.com/facebook/folly
-Source0:        https://github.com/facebook/folly/releases/download/v%{version}/folly-v%{version}.tar.gz
+Source0:        %{url}/archive/v%{version}/folly-%{version}.tar.gz
+# fixed_string_test fails with "error: non-constant condition for static assertion"
+Patch0:         %{name}-cleanup_fixed_string_tests.patch
 
 # Folly is known not to work on big-endian CPUs
 # https://bugzilla.redhat.com/show_bug.cgi?id=1892151
@@ -45,10 +46,6 @@ BuildRequires:  liburing-devel >= 0.7-2
 BuildRequires:  libzstd-devel
 BuildRequires:  lz4-devel
 BuildRequires:  openssl-devel
-%if %{with python}
-BuildRequires:  python3-Cython
-BuildRequires:  python3-devel
-%endif
 BuildRequires:  snappy-devel
 BuildRequires:  xz-devel
 BuildRequires:  zlib-devel
@@ -110,6 +107,29 @@ Requires:       %{name} = %{version}-%{release}
 The %{name}-docs package contains documentation for %{name}.
 
 
+%if %{with python}
+%package -n python3-%{name}
+Summary:        Python bindings for %{name}
+BuildRequires:  python3-devel
+BuildRequires:  python3dist(cython)
+BuildRequires:  python3dist(wheel)
+Requires:       %{name}%{?_isa} = %{version}-%{release}
+
+%description -n python3-%{name}
+The python3-%{name} package contains Python bindings for %{name}.
+
+
+%package -n python3-%{name}-devel
+Summary:        Development files for python3-%{name}
+Requires:       %{name}-devel%{?_isa} = %{version}-%{release}
+Requires:       python3-%{name}%{?_isa} = %{version}-%{release}
+
+%description -n python3-%{name}-devel
+The python3-%{name}-devel package contains libraries and header files for
+developing applications that use python3-%{name}.
+%endif
+
+
 %package        static
 Summary:        Static development libraries for %{name}
 Requires:       %{name}-devel%{?_isa} = %{version}-%{release}
@@ -120,7 +140,13 @@ developing applications that use %{name}.
 
 
 %prep
-%autosetup -c -p1
+%autosetup -p1
+%if %{with python}
+# this file gets cached starting in 841d5087eda926eac1cb17c4683fd48b247afe50
+# but it depends on executor_api.h which is generated alongside executor.cpp
+# delete this file so we regenerate both and allow the Python extension to be built
+rm folly/python/executor.cpp
+%endif
 
 
 %build
@@ -136,7 +162,8 @@ pushd %{_static_builddir}
 %endif
   -DBUILD_SHARED_LIBS=OFF \
   -DCMAKE_INSTALL_DIR=%{_libdir}/cmake/%{name}-static \
-  -DPACKAGE_VERSION=%{version}
+  -DPACKAGE_VERSION=%{version} \
+  -DPYTHON_EXTENSIONS=OFF
 %cmake_build
 popd
 
@@ -183,9 +210,23 @@ popd
 %{_libdir}/*.so
 %{_libdir}/cmake/%{name}
 %{_libdir}/pkgconfig/lib%{name}.pc
+%exclude %{_includedir}/folly/python
 
 %files docs
 %doc folly/docs/*.html
+
+%if %{with python}
+%files -n python3-%{name}
+%{python3_sitearch}/%{name}
+%{python3_sitearch}/%{name}-0.0.1-py%{python3_version}.egg-info
+%exclude %{python3_sitearch}/%{name}/*.h
+%exclude %{python3_sitearch}/%{name}/*.pxd
+
+%files -n python3-%{name}-devel
+%{_includedir}/folly/python
+%{python3_sitearch}/%{name}/*.h
+%{python3_sitearch}/%{name}/*.pxd
+%endif
 
 %files static
 %{_libdir}/*.a
@@ -193,6 +234,20 @@ popd
 
 
 %changelog
+* Mon Nov 16 2020 Michel Alexandre Salim <salimma@fedoraproject.org> - 2020.11.16.00-1
+- Update to 2020.11.16.00
+- Allow tests to be compiled
+
+* Mon Nov  9 2020 Michel Alexandre Salim <salimma@fedoraproject.org> - 2020.11.09.00-2
+- Ship *.{h,pxd} in python3-folly-devel for python3-fbthrift
+- Install python/executor.h
+
+* Mon Nov  9 2020 Michel Alexandre Salim <salimma@fedoraproject.org> - 2020.11.09.00-1
+- Update to 2020.11.09.00
+
+* Fri Nov  6 2020 Michel Alexandre Salim <salimma@fedoraproject.org> - 2020.11.02.00-2
+- Enable Python bindings by default
+
 * Mon Nov  2 2020 Michel Alexandre Salim <salimma@fedoraproject.org> - 2020.11.02.00-1
 - Update to 2020.11.02.00
 
