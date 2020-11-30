@@ -6,7 +6,7 @@
 %global _static_builddir static_build
 
 Name:           folly
-Version:        2020.11.23.00
+Version:        2020.11.30.00
 Release:        1%{?dist}
 Summary:        An open-source C++ library developed and used at Facebook
 
@@ -234,6 +234,9 @@ popd
 
 
 %changelog
+* Mon Nov 30 10:38:56 PST 2020 Michel Alexandre Salim <salimma@fedoraproject.org> - 2020.11.30.00-1
+- Update to 2020.11.30.00
+
 * Mon Nov 23 2020 Michel Alexandre Salim <salimma@fedoraproject.org> - 2020.11.23.00-1
 - Update to 2020.11.23.00
 
