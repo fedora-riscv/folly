@@ -113,6 +113,7 @@ Summary:        Python bindings for %{name}
 BuildRequires:  python3-devel
 BuildRequires:  python3dist(cython)
 BuildRequires:  python3dist(wheel)
+BuildRequires: make
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 
 %description -n python3-%{name}
