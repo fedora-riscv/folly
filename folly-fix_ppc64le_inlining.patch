@@ -1,0 +1,38 @@
+From d3d55cef70937b10888bca0828d4af49700b5425 Mon Sep 17 00:00:00 2001
+From: Michel Alexandre Salim <michel@michel-slm.name>
+Date: Tue, 22 Dec 2020 17:33:46 -0800
+Subject: [PATCH] Fix for ppc64le
+
+Inlining `getStackTraceInPlace` fails on Rawhide with
+
+```
+/builddir/build/BUILD/folly-2020.12.21.00/folly/experimental/symbolizer/StackTrace.cpp: In function 'folly::symbolizer::(anonymous namespace)::getStackTraceInPlace(ucontext_t&, unw_cursor&, unsigned long*, unsigned long)':
+/builddir/build/BUILD/folly-2020.12.21.00/folly/experimental/symbolizer/StackTrace.cpp:88:9: error: function 'folly::symbolizer::(anonymous namespace)::getStackTraceInPlace(ucontext_t&, unw_cursor&, unsigned long*, unsigned long)' can never be inlined because it uses setjmp
+   88 | ssize_t getStackTraceInPlace(
+      |         ^~~~~~~~~~~~~~~~~~~~
+```
+
+Signed-off-by: Michel Alexandre Salim <michel@michel-slm.name>
+---
+ folly/experimental/symbolizer/StackTrace.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/folly/experimental/symbolizer/StackTrace.cpp b/folly/experimental/symbolizer/StackTrace.cpp
+index a2aaefe21..f091be4d4 100644
+--- a/folly/experimental/symbolizer/StackTrace.cpp
++++ b/folly/experimental/symbolizer/StackTrace.cpp
+@@ -84,7 +84,11 @@ inline bool getFrameInfo(unw_cursor_t* cursor, uintptr_t& ip) {
+   return true;
+ }
+ 
++// on ppc64le, fails with
++// function can never be inlined because it uses setjmp
++#if FOLLY_PPC64 == 0
+ FOLLY_ALWAYS_INLINE
++#endif
+ ssize_t getStackTraceInPlace(
+     unw_context_t& context,
+     unw_cursor_t& cursor,
+-- 
+2.28.0
+

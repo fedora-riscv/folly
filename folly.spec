@@ -15,6 +15,8 @@ URL:            https://github.com/facebook/folly
 Source0:        %{url}/archive/v%{version}/folly-%{version}.tar.gz
 # fixed_string_test fails with "error: non-constant condition for static assertion"
 Patch0:         %{name}-cleanup_fixed_string_tests.patch
+# getStackTraceInPlace uses setjmp on ppc64le and can't be inlined
+Patch1:         %{name}-fix_ppc64le_inlining.patch
 
 # Folly is known not to work on big-endian CPUs
 # https://bugzilla.redhat.com/show_bug.cgi?id=1892151
