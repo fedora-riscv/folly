@@ -6,7 +6,7 @@
 %global _static_builddir static_build
 
 Name:           folly
-Version:        2020.11.30.00
+Version:        2020.12.21.00
 Release:        1%{?dist}
 Summary:        An open-source C++ library developed and used at Facebook
 
@@ -15,6 +15,8 @@ URL:            https://github.com/facebook/folly
 Source0:        %{url}/archive/v%{version}/folly-%{version}.tar.gz
 # fixed_string_test fails with "error: non-constant condition for static assertion"
 Patch0:         %{name}-cleanup_fixed_string_tests.patch
+# getStackTraceInPlace uses setjmp on ppc64le and can't be inlined
+Patch1:         %{name}-fix_ppc64le_inlining.patch
 
 # Folly is known not to work on big-endian CPUs
 # https://bugzilla.redhat.com/show_bug.cgi?id=1892151
@@ -113,6 +115,7 @@ Summary:        Python bindings for %{name}
 BuildRequires:  python3-devel
 BuildRequires:  python3dist(cython)
 BuildRequires:  python3dist(wheel)
+BuildRequires: make
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 
 %description -n python3-%{name}
@@ -234,6 +237,9 @@ popd
 
 
 %changelog
+* Tue Dec 22 16:54:00 PST 2020 Michel Alexandre Salim <salimma@fedoraproject.org> - 2020.12.21.00-1
+- Update to 2020.12.21.00
+
 * Mon Nov 30 10:38:56 PST 2020 Michel Alexandre Salim <salimma@fedoraproject.org> - 2020.11.30.00-1
 - Update to 2020.11.30.00
 
