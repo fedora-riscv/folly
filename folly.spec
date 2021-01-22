@@ -7,7 +7,7 @@
 
 Name:           folly
 Version:        2020.12.28.00
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        An open-source C++ library developed and used at Facebook
 
 License:        ASL 2.0
@@ -237,6 +237,9 @@ popd
 
 
 %changelog
+* Fri Jan 22 2021 Jonathan Wakely <jwakely@redhat.com> - 2020.12.28.00-2
+- Rebuilt for Boost 1.75
+
 * Tue Dec 29 12:13:52 PST 2020 Michel Alexandre Salim <salimma@fedoraproject.org> - 2020.12.28.00-1
 - Update to 2020.12.28.00
 
