@@ -1,0 +1,45 @@
+From a3a9cd103fbc7cc8c3e3e74863305e0799d7497e Mon Sep 17 00:00:00 2001
+From: Michel Alexandre Salim <michel@michel-slm.name>
+Date: Mon, 15 Mar 2021 13:30:08 -0700
+Subject: [PATCH] [FiberManager] handle non-constant SIGSTKSZ
+
+On glibc > 2.33 (e.g. on Fedora rawhide/35), SIGSTKSZ is no longer constant:
+http://sourceware-org.1504.n7.nabble.com/PATCH-sysconf-Add-SC-MINSIGSTKSZ-SC-SIGSTKSZ-BZ-20305-td650948.html
+
+Thus, if _SC_SIGSTKSZ_SOURCE is defined, just hardcode the value we want rather than taking
+the `constexpr_max` of it and 32 kB, which will fail.
+
+Signed-off-by: Michel Alexandre Salim <michel@michel-slm.name>
+---
+ folly/fibers/FiberManager.cpp | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/folly/fibers/FiberManager.cpp b/folly/fibers/FiberManager.cpp
+index fdd74fe2f..ae9f77b4c 100644
+--- a/folly/fibers/FiberManager.cpp
++++ b/folly/fibers/FiberManager.cpp
+@@ -17,6 +17,7 @@
+ #include <folly/fibers/FiberManagerInternal.h>
+ 
+ #include <csignal>
++#include <signal.h>
+ 
+ #include <cassert>
+ #include <stdexcept>
+@@ -343,7 +344,13 @@ namespace {
+ 
+ // SIGSTKSZ (8 kB on our architectures) isn't always enough for
+ // folly::symbolizer, so allocate 32 kB.
++#if defined(_SC_SIGSTKSZ_SOURCE)
++// on glibc > 2.33 this is no longer constant, see
++// http://sourceware-org.1504.n7.nabble.com/PATCH-sysconf-Add-SC-MINSIGSTKSZ-SC-SIGSTKSZ-BZ-20305-td650948.html
++constexpr size_t kAltStackSize = 32 * 1024;
++#else
+ constexpr size_t kAltStackSize = folly::constexpr_max(SIGSTKSZ, 32 * 1024);
++#endif
+ 
+ bool hasAlternateStack() {
+   stack_t ss;
+-- 
+2.30.1
+
