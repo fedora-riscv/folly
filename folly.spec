@@ -7,7 +7,7 @@
 
 Name:           folly
 Version:        2021.03.22.00
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        An open-source C++ library developed and used at Facebook
 
 License:        ASL 2.0
@@ -18,7 +18,7 @@ Patch0:         %{name}-cleanup_fixed_string_tests.patch
 # getStackTraceInPlace uses setjmp on ppc64le and can't be inlined
 Patch1:         %{name}-fix_ppc64le_inlining.patch
 # SIGSTKSZ is potentially non-constant in glibc > 2.33
-Patch2:         %{name}-fix_nonconstant_sigstksz.patch
+Patch2:         %{url}/commit/7df2d7e5098119c1562422ac9571e70f032adb50.patch#/%{name}-fix_nonconstant_sigstksz.patch
 
 # Folly is known not to work on big-endian CPUs
 # https://bugzilla.redhat.com/show_bug.cgi?id=1892151
@@ -239,6 +239,9 @@ popd
 
 
 %changelog
+* Wed Mar 24 2021 Michel Alexandre Salim <salimma@fedoraproject.org> - 2021.03.22.00-2
+- Use final version of SIGSTKSZ patch
+
 * Mon Mar 22 2021 Michel Alexandre Salim <salimma@fedoraproject.org> - 2021.03.22.00-1
 - Update to 2021.03.22.00
 - Update SIGSTKSZ patch based on upstream feedback
