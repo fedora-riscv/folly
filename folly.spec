@@ -6,8 +6,8 @@
 %global _static_builddir static_build
 
 Name:           folly
-Version:        2021.03.22.00
-Release:        2%{?dist}
+Version:        2021.03.29.00
+Release:        1%{?dist}
 Summary:        An open-source C++ library developed and used at Facebook
 
 License:        ASL 2.0
@@ -239,6 +239,9 @@ popd
 
 
 %changelog
+* Mon Mar 29 2021 Michel Alexandre Salim <michel@michel-slm.name> - 2021.03.29.00-1
+- Update to 2021.03.29.00
+
 * Wed Mar 24 2021 Michel Alexandre Salim <salimma@fedoraproject.org> - 2021.03.22.00-2
 - Use final version of SIGSTKSZ patch
 
