@@ -17,8 +17,6 @@ Source0:        %{url}/archive/v%{version}/folly-%{version}.tar.gz
 Patch0:         %{name}-cleanup_fixed_string_tests.patch
 # getStackTraceInPlace uses setjmp on ppc64le and can't be inlined
 Patch1:         %{name}-fix_ppc64le_inlining.patch
-# SIGSTKSZ is potentially non-constant in glibc > 2.33
-Patch2:         %{url}/commit/7df2d7e5098119c1562422ac9571e70f032adb50.patch#/%{name}-fix_nonconstant_sigstksz.patch
 
 # Folly is known not to work on big-endian CPUs
 # https://bugzilla.redhat.com/show_bug.cgi?id=1892151
