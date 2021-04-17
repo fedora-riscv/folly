@@ -6,7 +6,7 @@
 %global _static_builddir static_build
 
 Name:           folly
-Version:        2021.03.15.00
+Version:        2021.04.12.00
 Release:        1%{?dist}
 Summary:        An open-source C++ library developed and used at Facebook
 
@@ -17,8 +17,6 @@ Source0:        %{url}/archive/v%{version}/folly-%{version}.tar.gz
 Patch0:         %{name}-cleanup_fixed_string_tests.patch
 # getStackTraceInPlace uses setjmp on ppc64le and can't be inlined
 Patch1:         %{name}-fix_ppc64le_inlining.patch
-# SIGSTKSZ is potentially non-constant in glibc > 2.33
-Patch2:         %{name}-fix_nonconstant_sigstksz.patch
 
 # Folly is known not to work on big-endian CPUs
 # https://bugzilla.redhat.com/show_bug.cgi?id=1892151
@@ -239,6 +237,25 @@ popd
 
 
 %changelog
+* Fri Apr 16 2021 Michel Alexandre Salim <salimma@fedoraproject.org> - 2021.04.12.00-1
+- Update to 2021.04.12.00
+
+* Wed Apr 14 2021 Richard W.M. Jones <rjones@redhat.com> - 2021.03.29.00-3
+- Rebuild for updated liburing.
+
+* Tue Mar 30 2021 Jonathan Wakely <jwakely@redhat.com> - 2021.03.29.00-2
+- Rebuilt for removed libstdc++ symbol (#1937698)
+
+* Mon Mar 29 2021 Michel Alexandre Salim <michel@michel-slm.name> - 2021.03.29.00-1
+- Update to 2021.03.29.00
+
+* Wed Mar 24 2021 Michel Alexandre Salim <salimma@fedoraproject.org> - 2021.03.22.00-2
+- Use final version of SIGSTKSZ patch
+
+* Mon Mar 22 2021 Michel Alexandre Salim <salimma@fedoraproject.org> - 2021.03.22.00-1
+- Update to 2021.03.22.00
+- Update SIGSTKSZ patch based on upstream feedback
+
 * Mon Mar 15 2021 Michel Alexandre Salim <salimma@fedoraproject.org> - 2021.03.15.00-1
 - Update to 2021.03.15.00
 - Handle non-constant SIGSTKSZ in glibc > 2.33
