@@ -113,6 +113,7 @@ The %{name}-docs package contains documentation for %{name}.
 %package -n python3-%{name}
 Summary:        Python bindings for %{name}
 BuildRequires:  python3-devel
+BuildRequires:  python3dist(setuptools)
 BuildRequires:  python3dist(cython)
 BuildRequires:  python3dist(wheel)
 BuildRequires: make
