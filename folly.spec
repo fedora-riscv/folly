@@ -7,7 +7,7 @@
 
 Name:           folly
 Version:        2021.06.07.00
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        An open-source C++ library developed and used at Facebook
 
 License:        ASL 2.0
@@ -238,6 +238,9 @@ popd
 
 
 %changelog
+* Mon Jul 05 2021 Richard Shaw <hobbes1069@gmail.com> - 2021.06.07.00-2
+- Rebuild for new fmt version.
+
 * Wed Jun 09 2021 Michel Alexandre Salim <michel@michel-slm.name> - 2021.06.07.00-1
 - Update to 2021.06.07.00
 
