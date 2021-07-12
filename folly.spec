@@ -13,6 +13,8 @@ Summary:        An open-source C++ library developed and used at Facebook
 License:        ASL 2.0
 URL:            https://github.com/facebook/folly
 Source0:        %{url}/archive/v%{version}/folly-%{version}.tar.gz
+# getStackTraceInPlace uses setjmp on ppc64le and can't be inlined
+Patch0:         %{name}-fix_ppc64le_inlining.patch
 
 # Folly is known not to work on big-endian CPUs
 # https://bugzilla.redhat.com/show_bug.cgi?id=1892151
