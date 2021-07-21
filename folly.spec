@@ -7,7 +7,7 @@
 
 Name:           folly
 Version:        2021.06.28.00
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        An open-source C++ library developed and used at Facebook
 
 License:        ASL 2.0
@@ -236,6 +236,9 @@ popd
 
 
 %changelog
+* Wed Jul 21 2021 Fedora Release Engineering <releng@fedoraproject.org> - 2021.06.28.00-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_35_Mass_Rebuild
+
 * Thu Jul 08 2021 Davide Cavalca <dcavalca@fedoraproject.org> - 2021.06.28.00-1
 - Update to 2021.06.28.00
 
