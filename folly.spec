@@ -7,7 +7,7 @@
 
 Name:           folly
 Version:        2021.07.20.01
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        An open-source C++ library developed and used at Facebook
 
 License:        ASL 2.0
@@ -15,6 +15,7 @@ URL:            https://github.com/facebook/folly
 Source0:        %{url}/archive/v%{version}/folly-%{version}.tar.gz
 # getStackTraceInPlace uses setjmp on ppc64le and can't be inlined
 Patch0:         %{name}-fix_ppc64le_inlining.patch
+Patch1:         %{name}-drop-immintrin.patch
 
 # Folly is known not to work on big-endian CPUs
 # https://bugzilla.redhat.com/show_bug.cgi?id=1892151
@@ -236,6 +237,11 @@ popd
 
 
 %changelog
+* Mon Jul 26 2021 Filipe Brandenburger <filbranden@gmail.com> - 2021.07.20.01-2
+- Drop include of the immintrin.h header, due to conflict with
+  the _serialize() macro defined in a header included by that
+  file, starting with GCC 11. Fixes an fbthrift build breakage.
+
 * Sat Jul 24 2021 Michel Alexandre Salim <salimma@fedoraproject.org> - 2021.07.20.01-1
 - Update to 2021.07.20.01
 
