@@ -6,8 +6,8 @@
 %global _static_builddir static_build
 
 Name:           folly
-Version:        2021.07.20.01
-Release:        2%{?dist}
+Version:        2021.07.22.00
+Release:        1%{?dist}
 Summary:        An open-source C++ library developed and used at Facebook
 
 License:        ASL 2.0
@@ -237,6 +237,9 @@ popd
 
 
 %changelog
+* Tue Jul 27 2021 Michel Alexandre Salim <salimma@fedoraproject.org> - 2021.07.22.00-1
+- Update to 2021.07.22.00
+
 * Mon Jul 26 2021 Filipe Brandenburger <filbranden@gmail.com> - 2021.07.20.01-2
 - Drop include of the immintrin.h header, due to conflict with
   the _serialize() macro defined in a header included by that
