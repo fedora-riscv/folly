@@ -5,9 +5,12 @@
 
 %global _static_builddir static_build
 
+# Use C++20 standard, required for folly coroutines.
+%global build_cxxflags -std=c++20 %{optflags}
+
 Name:           folly
 Version:        2021.07.22.00
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        An open-source C++ library developed and used at Facebook
 
 License:        ASL 2.0
@@ -237,6 +240,9 @@ popd
 
 
 %changelog
+* Thu Jul 29 2021 Filipe Brandenburger <filbranden@gmail.com> - 2021.07.22.00-2
+- Use C++20 standard, in order to enable C++ coroutines.
+
 * Tue Jul 27 2021 Michel Alexandre Salim <salimma@fedoraproject.org> - 2021.07.22.00-1
 - Update to 2021.07.22.00
 
