@@ -1,0 +1,27 @@
+diff -Naur folly-2021.07.22.00.orig/CMakeLists.txt folly-2021.07.22.00/CMakeLists.txt
+--- folly-2021.07.22.00.orig/CMakeLists.txt	2021-07-21 17:15:26.000000000 -0700
++++ folly-2021.07.22.00/CMakeLists.txt	2021-07-30 16:03:14.912611147 -0700
+@@ -234,6 +234,23 @@
+   )
+ endif()
+ 
++if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
++  check_cxx_compiler_flag(-fcoroutines COMPILER_HAS_F_COROUTINES)
++  if (COMPILER_HAS_F_COROUTINES)
++    message(
++      STATUS
++      "GCC has support for C++ coroutines, setting flag for Folly build."
++    )
++    add_compile_options(-fcoroutines)
++  else()
++    message(
++      WARNING
++      "GCC does not have support for C++ coroutines, "
++      "disabling Folly coroutine support."
++    )
++  endif()
++endif()
++
+ if (${LIBSODIUM_FOUND})
+   string(FIND "${CMAKE_LIBRARY_ARCHITECTURE}" "x86_64" IS_X86_64_ARCH)
+   if (${IS_X86_64_ARCH} STREQUAL "-1")

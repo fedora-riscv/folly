@@ -5,12 +5,9 @@
 
 %global _static_builddir static_build
 
-# Use C++20 standard, required for folly coroutines.
-%global build_cxxflags -std=c++20 %{optflags}
-
 Name:           folly
 Version:        2021.07.22.00
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        An open-source C++ library developed and used at Facebook
 
 License:        ASL 2.0
@@ -19,6 +16,7 @@ Source0:        %{url}/archive/v%{version}/folly-%{version}.tar.gz
 # getStackTraceInPlace uses setjmp on ppc64le and can't be inlined
 Patch0:         %{name}-fix_ppc64le_inlining.patch
 Patch1:         %{name}-drop-immintrin.patch
+Patch2:         %{name}-gcc-enable-coroutines.patch
 
 # Folly is known not to work on big-endian CPUs
 # https://bugzilla.redhat.com/show_bug.cgi?id=1892151
@@ -240,6 +238,9 @@ popd
 
 
 %changelog
+* Fri Jul 30 2021 Filipe Brandenburger <filbranden@gmail.com> - 2021.07.22.00-3
+- Enable coroutines through -fcoroutines instead of -std=c++20.
+
 * Thu Jul 29 2021 Filipe Brandenburger <filbranden@gmail.com> - 2021.07.22.00-2
 - Use C++20 standard, in order to enable C++ coroutines.
 
