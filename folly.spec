@@ -6,8 +6,8 @@
 %global _static_builddir static_build
 
 Name:           folly
-Version:        2021.07.22.00
-Release:        3%{?dist}
+Version:        2021.08.02.00
+Release:        1%{?dist}
 Summary:        An open-source C++ library developed and used at Facebook
 
 License:        ASL 2.0
@@ -238,6 +238,9 @@ popd
 
 
 %changelog
+* Thu Aug  5 2021 Filipe Brandenburger <filbranden@gmail.com> - 2021.08.02.00-1
+- Update to 2021.08.02.00
+
 * Fri Jul 30 2021 Filipe Brandenburger <filbranden@gmail.com> - 2021.07.22.00-3
 - Enable coroutines through -fcoroutines instead of -std=c++20.
 
