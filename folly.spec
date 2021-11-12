@@ -6,8 +6,8 @@
 %global _static_builddir static_build
 
 Name:           folly
-Version:        2021.08.02.00
-Release:        3%{?dist}
+Version:        2021.11.08.00
+Release:        1%{?dist}
 Summary:        An open-source C++ library developed and used at Facebook
 
 License:        ASL 2.0
@@ -238,6 +238,9 @@ popd
 
 
 %changelog
+* Fri Nov 12 2021 Michel Alexandre Salim <michel@michel-slm.name> - 2021.11.08.00-1
+- Update to 2021.11.08.00
+
 * Tue Sep 14 2021 Sahana Prasad <sahana@redhat.com> - 2021.08.02.00-3
 - Rebuilt with OpenSSL 3.0.0
 
