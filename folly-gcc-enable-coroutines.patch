@@ -1,8 +1,7 @@
-diff -Naur folly-2021.07.22.00.orig/CMakeLists.txt folly-2021.07.22.00/CMakeLists.txt
---- folly-2021.07.22.00.orig/CMakeLists.txt	2021-07-21 17:15:26.000000000 -0700
-+++ folly-2021.07.22.00/CMakeLists.txt	2021-07-30 16:03:14.912611147 -0700
-@@ -234,6 +234,23 @@
-   )
+--- folly-2021.11.08.00/CMakeLists.txt.gcc-enable-coroutines	2021-11-07 17:31:23.000000000 -0800
++++ folly-2021.11.08.00/CMakeLists.txt	2021-11-12 15:59:21.337431502 -0800
+@@ -251,6 +251,23 @@
+   endif()
  endif()
  
 +if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
