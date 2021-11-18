@@ -1,5 +1,18 @@
 %bcond_without python
 
+%if 0%{?fedora} >= 36
+# incompatibilities down the stack (e.g. wangle) with OpenSSL 3.0.0
+%bcond_without openssl11
+%else
+%bcond_with openssl11
+%endif
+
+%if %{with openssl11}
+%global _ossldev openssl1.1-devel
+%else
+%global _ossldev openssl-devel
+%endif
+
 # Even with the patch, many tests still fail
 %bcond_with tests
 
@@ -7,7 +20,7 @@
 
 Name:           folly
 Version:        2021.11.15.00
-Release:        2%{?dist}
+Release:        %{autorelease}
 Summary:        An open-source C++ library developed and used at Facebook
 
 License:        ASL 2.0
@@ -45,7 +58,7 @@ BuildRequires:  libunwind-devel
 BuildRequires:  liburing-devel >= 0.7-3
 BuildRequires:  libzstd-devel
 BuildRequires:  lz4-devel
-BuildRequires:  openssl-devel
+BuildRequires:  %{_ossldev}
 BuildRequires:  snappy-devel
 BuildRequires:  xz-devel
 BuildRequires:  zlib-devel
@@ -88,7 +101,7 @@ Requires:       libunwind-devel%{?_isa}
 Requires:       liburing-devel%{?_isa} >= 0.7-3
 Requires:       libzstd-devel%{?_isa}
 Requires:       lz4-devel%{?_isa}
-Requires:       openssl-devel%{?_isa}
+Requires:       %{_ossldev}%{?_isa}
 Requires:       snappy-devel%{?_isa}
 Requires:       xz-devel%{?_isa}
 Requires:       zlib-devel%{?_isa}
@@ -236,147 +249,4 @@ popd
 
 
 %changelog
-* Thu Nov 18 2021 Michel Alexandre Salim <michel@michel-slm.name> - 2021.11.15.00-2
-- Revert partial switch to openssl1.1
-
-* Wed Nov 17 2021 Michel Alexandre Salim <michel@michel-slm.name> - 2021.11.15.00-1
-- Update to 2021.11.15.00
-
-* Fri Nov 12 2021 Michel Alexandre Salim <michel@michel-slm.name> - 2021.11.08.00-1
-- Update to 2021.11.08.00
-
-* Tue Sep 14 2021 Sahana Prasad <sahana@redhat.com> - 2021.08.02.00-3
-- Rebuilt with OpenSSL 3.0.0
-
-* Fri Aug 06 2021 Jonathan Wakely <jwakely@redhat.com> - 2021.08.02.00-2
-- Rebuilt for Boost 1.76
-
-* Thu Aug  5 2021 Filipe Brandenburger <filbranden@gmail.com> - 2021.08.02.00-1
-- Update to 2021.08.02.00
-
-* Fri Jul 30 2021 Filipe Brandenburger <filbranden@gmail.com> - 2021.07.22.00-3
-- Enable coroutines through -fcoroutines instead of -std=c++20.
-
-* Thu Jul 29 2021 Filipe Brandenburger <filbranden@gmail.com> - 2021.07.22.00-2
-- Use C++20 standard, in order to enable C++ coroutines.
-
-* Tue Jul 27 2021 Michel Alexandre Salim <salimma@fedoraproject.org> - 2021.07.22.00-1
-- Update to 2021.07.22.00
-
-* Mon Jul 26 2021 Filipe Brandenburger <filbranden@gmail.com> - 2021.07.20.01-2
-- Drop include of the immintrin.h header, due to conflict with
-  the _serialize() macro defined in a header included by that
-  file, starting with GCC 11. Fixes an fbthrift build breakage.
-
-* Sat Jul 24 2021 Michel Alexandre Salim <salimma@fedoraproject.org> - 2021.07.20.01-1
-- Update to 2021.07.20.01
-
-* Wed Jul 21 2021 Fedora Release Engineering <releng@fedoraproject.org> - 2021.06.28.00-2
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_35_Mass_Rebuild
-
-* Thu Jul 08 2021 Davide Cavalca <dcavalca@fedoraproject.org> - 2021.06.28.00-1
-- Update to 2021.06.28.00
-
-* Mon Jul 05 2021 Richard Shaw <hobbes1069@gmail.com> - 2021.06.07.00-2
-- Rebuild for new fmt version.
-
-* Wed Jun 09 2021 Michel Alexandre Salim <michel@michel-slm.name> - 2021.06.07.00-1
-- Update to 2021.06.07.00
-
-* Fri Jun 04 2021 Python Maint <python-maint@redhat.com> - 2021.05.10.00-2
-- Rebuilt for Python 3.10
-
-* Mon May 10 2021 Michel Alexandre Salim <michel@michel-slm.name> - 2021.05.10.00-1
-- Update to 2021.05.10.00
-
-* Mon Apr 26 2021 Michel Alexandre Salim <michel@michel-slm.name> - 2021.04.26.00-1
-- Update to 2021.04.26.00
-
-* Fri Apr 16 2021 Michel Alexandre Salim <salimma@fedoraproject.org> - 2021.04.12.00-1
-- Update to 2021.04.12.00
-
-* Wed Apr 14 2021 Richard W.M. Jones <rjones@redhat.com> - 2021.03.29.00-3
-- Rebuild for updated liburing.
-
-* Tue Mar 30 2021 Jonathan Wakely <jwakely@redhat.com> - 2021.03.29.00-2
-- Rebuilt for removed libstdc++ symbol (#1937698)
-
-* Mon Mar 29 2021 Michel Alexandre Salim <michel@michel-slm.name> - 2021.03.29.00-1
-- Update to 2021.03.29.00
-
-* Wed Mar 24 2021 Michel Alexandre Salim <salimma@fedoraproject.org> - 2021.03.22.00-2
-- Use final version of SIGSTKSZ patch
-
-* Mon Mar 22 2021 Michel Alexandre Salim <salimma@fedoraproject.org> - 2021.03.22.00-1
-- Update to 2021.03.22.00
-- Update SIGSTKSZ patch based on upstream feedback
-
-* Mon Mar 15 2021 Michel Alexandre Salim <salimma@fedoraproject.org> - 2021.03.15.00-1
-- Update to 2021.03.15.00
-- Handle non-constant SIGSTKSZ in glibc > 2.33
-
-* Wed Feb 03 2021 Michel Alexandre Salim <salimma@fedoraproject.org> - 2021.02.01.00-1
-- Update to 2021.02.01.00
-
-* Tue Jan 26 17:47:59 PST 2021 Michel Alexandre Salim <salimma@fedoraproject.org> - 2021.01.25.00-1
-- Update to 2021.01.25.00
-
-* Tue Jan 26 2021 Fedora Release Engineering <releng@fedoraproject.org> - 2020.12.28.00-3
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_34_Mass_Rebuild
-
-* Fri Jan 22 2021 Jonathan Wakely <jwakely@redhat.com> - 2020.12.28.00-2
-- Rebuilt for Boost 1.75
-
-* Tue Dec 29 12:13:52 PST 2020 Michel Alexandre Salim <salimma@fedoraproject.org> - 2020.12.28.00-1
-- Update to 2020.12.28.00
-
-* Tue Dec 22 16:54:00 PST 2020 Michel Alexandre Salim <salimma@fedoraproject.org> - 2020.12.21.00-1
-- Update to 2020.12.21.00
-
-* Mon Nov 30 10:38:56 PST 2020 Michel Alexandre Salim <salimma@fedoraproject.org> - 2020.11.30.00-1
-- Update to 2020.11.30.00
-
-* Mon Nov 23 2020 Michel Alexandre Salim <salimma@fedoraproject.org> - 2020.11.23.00-1
-- Update to 2020.11.23.00
-
-* Mon Nov 16 2020 Michel Alexandre Salim <salimma@fedoraproject.org> - 2020.11.16.00-1
-- Update to 2020.11.16.00
-- Allow tests to be compiled
-
-* Mon Nov  9 2020 Michel Alexandre Salim <salimma@fedoraproject.org> - 2020.11.09.00-2
-- Ship *.{h,pxd} in python3-folly-devel for python3-fbthrift
-- Install python/executor.h
-
-* Mon Nov  9 2020 Michel Alexandre Salim <salimma@fedoraproject.org> - 2020.11.09.00-1
-- Update to 2020.11.09.00
-
-* Fri Nov  6 2020 Michel Alexandre Salim <salimma@fedoraproject.org> - 2020.11.02.00-2
-- Enable Python bindings by default
-
-* Mon Nov  2 2020 Michel Alexandre Salim <salimma@fedoraproject.org> - 2020.11.02.00-1
-- Update to 2020.11.02.00
-
-* Mon Oct 26 2020 Michel Alexandre Salim <salimma@fedoraproject.org> - 2020.10.26.00-1
-- Update to 2020.10.26.00
-- Build docs
-- Don't run tests if built without tests
-
-* Thu Oct 22 2020 Michel Alexandre Salim <salimma@fedoraproject.org> - 2020.10.19.00-4
-- Put static cmake support files in its own directory
-- Add most folly BRs as folly-devel requirements, as dependent packages will need them
-
-* Wed Oct 21 2020 Michel Alexandre Salim <salimma@fedoraproject.org> - 2020.10.19.00-3
-- Provide both shared and static libraries
-
-* Tue Oct 20 2020 Michel Alexandre Salim <salimma@fedoraproject.org> - 2020.10.19.00-2
-- Add libiberty and zstd BRs
-- Try compiling Python extensions
-
-* Tue Oct 20 2020 Michel Alexandre Salim <salimma@fedoraproject.org> - 2020.10.19.00-1
-- Update to 2020.10.19.00
-- Fix compile error on i686
-- Fix compile error on armv7hl (requires liburing >= 0.7-3)
-- Exclude s390x
-
-* Mon Oct 12 14:54:12 PDT 2020 Michel Alexandre Salim <salimma@fedoraproject.org> - 2020.10.12.00-1
-- Initial package
+%autochangelog
