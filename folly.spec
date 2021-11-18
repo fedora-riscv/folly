@@ -6,17 +6,15 @@
 %global _static_builddir static_build
 
 Name:           folly
-Version:        2021.11.08.00
+Version:        2021.11.15.00
 Release:        1%{?dist}
 Summary:        An open-source C++ library developed and used at Facebook
 
 License:        ASL 2.0
 URL:            https://github.com/facebook/folly
 Source0:        %{url}/archive/v%{version}/folly-%{version}.tar.gz
-# getStackTraceInPlace uses setjmp on ppc64le and can't be inlined
-Patch0:         %{name}-fix_ppc64le_inlining.patch
-Patch1:         %{name}-drop-immintrin.patch
-Patch2:         %{name}-gcc-enable-coroutines.patch
+Patch0:         %{name}-drop-immintrin.patch
+Patch1:         %{name}-gcc-enable-coroutines.patch
 
 # Folly is known not to work on big-endian CPUs
 # https://bugzilla.redhat.com/show_bug.cgi?id=1892151
@@ -47,7 +45,11 @@ BuildRequires:  libunwind-devel
 BuildRequires:  liburing-devel >= 0.7-3
 BuildRequires:  libzstd-devel
 BuildRequires:  lz4-devel
+%if 0%{?fedora} >= 36
+BuildRequires:  openssl1.1-devel
+%else
 BuildRequires:  openssl-devel
+%endif
 BuildRequires:  snappy-devel
 BuildRequires:  xz-devel
 BuildRequires:  zlib-devel
@@ -238,6 +240,9 @@ popd
 
 
 %changelog
+* Wed Nov 17 2021 Michel Alexandre Salim <michel@michel-slm.name> - 2021.11.15.00-1
+- Update to 2021.11.15.00
+
 * Fri Nov 12 2021 Michel Alexandre Salim <michel@michel-slm.name> - 2021.11.08.00-1
 - Update to 2021.11.08.00
 
