@@ -7,7 +7,7 @@
 
 Name:           folly
 Version:        2021.11.15.00
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        An open-source C++ library developed and used at Facebook
 
 License:        ASL 2.0
@@ -45,11 +45,7 @@ BuildRequires:  libunwind-devel
 BuildRequires:  liburing-devel >= 0.7-3
 BuildRequires:  libzstd-devel
 BuildRequires:  lz4-devel
-%if 0%{?fedora} >= 36
-BuildRequires:  openssl1.1-devel
-%else
 BuildRequires:  openssl-devel
-%endif
 BuildRequires:  snappy-devel
 BuildRequires:  xz-devel
 BuildRequires:  zlib-devel
@@ -240,6 +236,9 @@ popd
 
 
 %changelog
+* Thu Nov 18 2021 Michel Alexandre Salim <michel@michel-slm.name> - 2021.11.15.00-2
+- Revert partial switch to openssl1.1
+
 * Wed Nov 17 2021 Michel Alexandre Salim <michel@michel-slm.name> - 2021.11.15.00-1
 - Update to 2021.11.15.00
 
