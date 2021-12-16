@@ -1,25 +1,13 @@
 %bcond_without python
 
-%if 0%{?fedora} >= 36
-# incompatibilities down the stack (e.g. wangle) with OpenSSL 3.0.0
-%bcond_without openssl11
-%else
-%bcond_with openssl11
-%endif
-
-%if %{with openssl11}
-%global _ossldev openssl1.1-devel
-%else
-%global _ossldev openssl-devel
-%endif
-
-# Even with the patch, many tests still fail
+# No tests were found:
+# https://github.com/facebook/folly/issues/1671
 %bcond_with tests
 
 %global _static_builddir static_build
 
 Name:           folly
-Version:        2021.11.15.00
+Version:        2021.11.29.00
 Release:        %{autorelease}
 Summary:        An open-source C++ library developed and used at Facebook
 
@@ -58,7 +46,7 @@ BuildRequires:  libunwind-devel
 BuildRequires:  liburing-devel >= 0.7-3
 BuildRequires:  libzstd-devel
 BuildRequires:  lz4-devel
-BuildRequires:  %{_ossldev}
+BuildRequires:  openssl-devel
 BuildRequires:  snappy-devel
 BuildRequires:  xz-devel
 BuildRequires:  zlib-devel
@@ -101,7 +89,7 @@ Requires:       libunwind-devel%{?_isa}
 Requires:       liburing-devel%{?_isa} >= 0.7-3
 Requires:       libzstd-devel%{?_isa}
 Requires:       lz4-devel%{?_isa}
-Requires:       %{_ossldev}%{?_isa}
+Requires:       openssl-devel%{?_isa}
 Requires:       snappy-devel%{?_isa}
 Requires:       xz-devel%{?_isa}
 Requires:       zlib-devel%{?_isa}
@@ -169,14 +157,13 @@ rm folly/python/executor.cpp
 mkdir %{_static_builddir}
 pushd %{_static_builddir}
 # let's build tests only in the static build since that's what upstream recommends anyway
+%cmake .. \
 %if %{with tests}
-%cmake .. \
   -DBUILD_TESTS=ON \
-%else
-%cmake .. \
 %endif
   -DBUILD_SHARED_LIBS=OFF \
   -DCMAKE_INSTALL_DIR=%{_libdir}/cmake/%{name}-static \
+  -DLIBDWARF_INCLUDE_DIR=%{_includedir}/libdwarf-0 \
   -DPACKAGE_VERSION=%{version} \
   -DPYTHON_EXTENSIONS=OFF
 %cmake_build
@@ -188,6 +175,7 @@ popd
   -DPYTHON_EXTENSIONS=ON \
 %endif
   -DCMAKE_INSTALL_DIR=%{_libdir}/cmake/%{name} \
+  -DLIBDWARF_INCLUDE_DIR=%{_includedir}/libdwarf-0 \
   -DPACKAGE_VERSION=%{version}
 %cmake_build
 
