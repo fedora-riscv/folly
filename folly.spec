@@ -1,5 +1,11 @@
 %bcond_without python
 
+%if 0%{?el9}
+%bcond_with dwarf
+%else
+%bcond_without dwarf
+%endif
+
 # No tests were found:
 # https://github.com/facebook/folly/issues/1671
 %bcond_with tests
@@ -38,7 +44,9 @@ BuildRequires:  glog-devel
 BuildRequires:  gmock-devel
 %endif
 BuildRequires:  libaio-devel
+%if %{with dwarf}
 BuildRequires:  libdwarf-devel
+%endif
 BuildRequires:  libevent-devel
 BuildRequires:  libsodium-devel
 BuildRequires:  libunwind-devel
@@ -163,7 +171,9 @@ pushd %{_static_builddir}
 %endif
   -DBUILD_SHARED_LIBS=OFF \
   -DCMAKE_INSTALL_DIR=%{_libdir}/cmake/%{name}-static \
+%if %{with dwarf} && 0%{?fedora}
   -DLIBDWARF_INCLUDE_DIR=%{_includedir}/libdwarf-0 \
+%endif
   -DPACKAGE_VERSION=%{version} \
   -DPYTHON_EXTENSIONS=OFF
 %cmake_build
@@ -175,7 +185,9 @@ popd
   -DPYTHON_EXTENSIONS=ON \
 %endif
   -DCMAKE_INSTALL_DIR=%{_libdir}/cmake/%{name} \
+%if %{with tests} && 0%{?fedora}
   -DLIBDWARF_INCLUDE_DIR=%{_includedir}/libdwarf-0 \
+%endif
   -DPACKAGE_VERSION=%{version}
 %cmake_build
 
