@@ -42,6 +42,7 @@ BuildRequires:  gflags-devel
 BuildRequires:  glog-devel
 %if %{with tests}
 BuildRequires:  gmock-devel
+BuildRequires:  gtest-devel
 %endif
 BuildRequires:  libaio-devel
 %if %{with dwarf}
@@ -88,7 +89,6 @@ Requires:       cmake-filesystem
 Requires:       double-conversion-devel%{?_isa}
 Requires:       fmt-devel%{?_isa}
 Requires:       glog-devel%{?_isa}
-Requires:       gmock-devel%{?_isa}
 Requires:       libaio-devel%{?_isa}
 Requires:       libdwarf-devel%{?_isa}
 Requires:       libevent-devel%{?_isa}
