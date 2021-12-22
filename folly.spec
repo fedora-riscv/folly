@@ -185,7 +185,7 @@ popd
   -DPYTHON_EXTENSIONS=ON \
 %endif
   -DCMAKE_INSTALL_DIR=%{_libdir}/cmake/%{name} \
-%if %{with tests} && 0%{?fedora}
+%if %{with dwarf} && 0%{?fedora}
   -DLIBDWARF_INCLUDE_DIR=%{_includedir}/libdwarf-0 \
 %endif
   -DPACKAGE_VERSION=%{version}
