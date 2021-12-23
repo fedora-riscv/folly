@@ -1,10 +1,12 @@
-%bcond_without python
-
 %if 0%{?el9}
-%bcond_with dwarf
+# pandoc is not in CS9
+# https://bugzilla.redhat.com/show_bug.cgi?id=2035151
+%bcond_with docs
 %else
-%bcond_without dwarf
+%bcond_without docs
 %endif
+
+%bcond_without python
 
 # No tests were found:
 # https://github.com/facebook/folly/issues/1671
@@ -13,7 +15,7 @@
 %global _static_builddir static_build
 
 Name:           folly
-Version:        2021.11.29.00
+Version:        2021.12.20.00
 Release:        %{autorelease}
 Summary:        An open-source C++ library developed and used at Facebook
 
@@ -21,7 +23,6 @@ License:        ASL 2.0
 URL:            https://github.com/facebook/folly
 Source0:        %{url}/archive/v%{version}/folly-%{version}.tar.gz
 Patch0:         %{name}-drop-immintrin.patch
-Patch1:         %{name}-gcc-enable-coroutines.patch
 
 # Folly is known not to work on big-endian CPUs
 # https://bugzilla.redhat.com/show_bug.cgi?id=1892151
@@ -30,7 +31,9 @@ ExcludeArch:    s390x
 BuildRequires:  cmake
 BuildRequires:  gcc-c++
 # Docs dependencies
+%if %{with docs}
 BuildRequires:  pandoc
+%endif
 # Library dependencies
 # for libiberty
 BuildRequires:  binutils-devel
@@ -45,9 +48,7 @@ BuildRequires:  gmock-devel
 BuildRequires:  gtest-devel
 %endif
 BuildRequires:  libaio-devel
-%if %{with dwarf}
 BuildRequires:  libdwarf-devel
-%endif
 BuildRequires:  libevent-devel
 BuildRequires:  libsodium-devel
 BuildRequires:  libunwind-devel
@@ -60,7 +61,7 @@ BuildRequires:  snappy-devel
 BuildRequires:  xz-devel
 BuildRequires:  zlib-devel
 
-%description
+%global _description %{expand:
 Folly (acronymed loosely after Facebook Open Source Library) is a library of
 C++14 components designed with practicality and efficiency in mind. Folly
 contains a variety of core library components used extensively at Facebook. In
@@ -76,7 +77,9 @@ obsoletes them.
 Performance concerns permeate much of Folly, sometimes leading to designs that
 are more idiosyncratic than they would otherwise be (see e.g. PackedSyncPtr.h,
 SmallLocks.h). Good performance at large scale is a unifying theme in all of
-Folly.
+Folly.}
+
+%description %{_description}
 
 
 %package        devel
@@ -102,31 +105,36 @@ Requires:       snappy-devel%{?_isa}
 Requires:       xz-devel%{?_isa}
 Requires:       zlib-devel%{?_isa}
 
-%description    devel
+%description    devel %{_description}
+
 The %{name}-devel package contains libraries and header files for
 developing applications that use %{name}.
 
 
+%if %{with docs}
 %package        docs
 Summary:        Documentation for %{name}
 BuildArch:      noarch
 Requires:       %{name} = %{version}-%{release}
 
-%description    docs
+%description    docs %{_description}
+
 The %{name}-docs package contains documentation for %{name}.
+%endif
 
 
 %if %{with python}
 %package -n python3-%{name}
 Summary:        Python bindings for %{name}
+BuildRequires:  make
 BuildRequires:  python3-devel
 BuildRequires:  python3dist(setuptools)
 BuildRequires:  python3dist(cython)
 BuildRequires:  python3dist(wheel)
-BuildRequires: make
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 
-%description -n python3-%{name}
+%description -n python3-%{name} %{_description}
+
 The python3-%{name} package contains Python bindings for %{name}.
 
 
@@ -135,7 +143,8 @@ Summary:        Development files for python3-%{name}
 Requires:       %{name}-devel%{?_isa} = %{version}-%{release}
 Requires:       python3-%{name}%{?_isa} = %{version}-%{release}
 
-%description -n python3-%{name}-devel
+%description -n python3-%{name}-devel %{_description}
+
 The python3-%{name}-devel package contains libraries and header files for
 developing applications that use python3-%{name}.
 %endif
@@ -145,7 +154,8 @@ developing applications that use python3-%{name}.
 Summary:        Static development libraries for %{name}
 Requires:       %{name}-devel%{?_isa} = %{version}-%{release}
 
-%description    static
+%description    static %{_description}
+
 The %{name}-static package contains static libraries for
 developing applications that use %{name}.
 
@@ -171,7 +181,7 @@ pushd %{_static_builddir}
 %endif
   -DBUILD_SHARED_LIBS=OFF \
   -DCMAKE_INSTALL_DIR=%{_libdir}/cmake/%{name}-static \
-%if %{with dwarf} && 0%{?fedora}
+%if 0%{?fedora} || 0%{?rhel} >= 9
   -DLIBDWARF_INCLUDE_DIR=%{_includedir}/libdwarf-0 \
 %endif
   -DPACKAGE_VERSION=%{version} \
@@ -185,14 +195,16 @@ popd
   -DPYTHON_EXTENSIONS=ON \
 %endif
   -DCMAKE_INSTALL_DIR=%{_libdir}/cmake/%{name} \
-%if %{with dwarf} && 0%{?fedora}
+%if 0%{?fedora} || 0%{?rhel} >= 9
   -DLIBDWARF_INCLUDE_DIR=%{_includedir}/libdwarf-0 \
 %endif
   -DPACKAGE_VERSION=%{version}
 %cmake_build
 
+%if %{with docs}
 # Build documentation
 make -C folly/docs
+%endif
 
 
 %install
@@ -227,8 +239,10 @@ popd
 %{_libdir}/pkgconfig/lib%{name}.pc
 %exclude %{_includedir}/folly/python
 
+%if %{with docs}
 %files docs
 %doc folly/docs/*.html
+%endif
 
 %if %{with python}
 %files -n python3-%{name}
