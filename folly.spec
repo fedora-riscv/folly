@@ -23,6 +23,7 @@ License:        ASL 2.0
 URL:            https://github.com/facebook/folly
 Source0:        %{url}/archive/v%{version}/folly-%{version}.tar.gz
 Patch0:         %{name}-drop-immintrin.patch
+Patch1:         %{name}-badge_revert_for_gcc11.patch
 
 # Folly is known not to work on big-endian CPUs
 # https://bugzilla.redhat.com/show_bug.cgi?id=1892151

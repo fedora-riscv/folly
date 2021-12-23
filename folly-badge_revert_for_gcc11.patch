@@ -1,0 +1,79 @@
+From ceb864cff29cc12e4d2bdb86e2fadabd2f247673 Mon Sep 17 00:00:00 2001
+From: Michel Alexandre Salim <salimma@fedoraproject.org>
+Date: Thu, 23 Dec 2021 13:57:02 -0800
+Subject: [PATCH] Badge.h: fix compilation on GCC 11+
+
+Restore Badge.h to the revision before D32697212
+(external commit 9a519751ef07973ea2c9335dab578541a2782e34)
+
+Signed-off-by: Michel Alexandre Salim <salimma@fedoraproject.org>
+---
+ folly/lang/Badge.h | 25 +++----------------------
+ 1 file changed, 3 insertions(+), 22 deletions(-)
+
+diff --git a/folly/lang/Badge.h b/folly/lang/Badge.h
+index 210ce55cb..f59c3365d 100644
+--- a/folly/lang/Badge.h
++++ b/folly/lang/Badge.h
+@@ -22,9 +22,6 @@
+ 
+ namespace folly {
+ 
+-template <typename... Holders>
+-class any_badge;
+-
+ /**
+  * Badge pattern allows us to abstract over friend classes and make friend
+  * feature more scoped. Using this simple technique we can specify a badge tag
+@@ -32,10 +29,6 @@ class any_badge;
+  * holders). Badge can only be constructed by the specified badge holder binding
+  * the tagged functions to that call site.
+  *
+- * As a rule, it is poor form to pass a badge to arbitrary code. It is poor form
+- * for virtual, type-erased, or template functions to accept badges or to be
+- * passed badges.
+- *
+  * Example:
+  *   class ProtectedClass: {
+  *     ...
+@@ -57,19 +50,13 @@ class any_badge;
+  */
+ template <typename Holder>
+ class badge {
+- public:
+   friend Holder;
+-  /* implicit */ constexpr badge(any_badge<Holder>) noexcept {}
+-
+- private:
+-  /* implicit */ constexpr badge() noexcept {}
++  badge() noexcept {}
+ };
+ 
+ /**
+  * For cases when multiple badge holders need to call a function we can
+  * use folly::any_badge over each individual holder allowed.
+- * We allow subsets of badges to lift into supersets:
+- * folly::any_badge<A, B> lifts into folly::any_badge<A, B, C>.
+  *
+  * Example:
+  *   class ProtectedClass: {
+@@ -89,14 +76,8 @@ class any_badge {
+  public:
+   template <
+       typename Holder,
+-      typename = std::enable_if_t<folly::IsOneOf<Holder, Holders...>::value>>
+-  /* implicit */ constexpr any_badge(badge<Holder>) noexcept {}
+-
+-  template <
+-      typename... OtherHolders,
+-      typename = std::enable_if_t<folly::StrictConjunction<
+-          folly::IsOneOf<OtherHolders, Holders...>...>::value>>
+-  /* implicit */ constexpr any_badge(any_badge<OtherHolders...>) noexcept {}
++      std::enable_if_t<folly::IsOneOf<Holder, Holders...>::value, int> = 0>
++  /* implicit */ any_badge(badge<Holder>) noexcept {}
+ };
+ 
+ } // namespace folly
+-- 
+2.33.1
+
