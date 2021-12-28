@@ -182,7 +182,7 @@ pushd %{_static_builddir}
 %endif
   -DBUILD_SHARED_LIBS=OFF \
   -DCMAKE_INSTALL_DIR=%{_libdir}/cmake/%{name}-static \
-%if 0%{?fedora} || 0%{?rhel} >= 9
+%if 0%{?fedora} >= 36 || 0%{?rhel} >= 9
   -DLIBDWARF_INCLUDE_DIR=%{_includedir}/libdwarf-0 \
 %endif
   -DPACKAGE_VERSION=%{version} \
@@ -196,7 +196,7 @@ popd
   -DPYTHON_EXTENSIONS=ON \
 %endif
   -DCMAKE_INSTALL_DIR=%{_libdir}/cmake/%{name} \
-%if 0%{?fedora} || 0%{?rhel} >= 9
+%if 0%{?fedora} >= 36 || 0%{?rhel} >= 9
   -DLIBDWARF_INCLUDE_DIR=%{_includedir}/libdwarf-0 \
 %endif
   -DPACKAGE_VERSION=%{version}
