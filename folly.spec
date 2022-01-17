@@ -8,14 +8,13 @@
 
 %bcond_without python
 
-# No tests were found:
-# https://github.com/facebook/folly/issues/1671
+# Some tests fail to compile
 %bcond_with tests
 
 %global _static_builddir static_build
 
 Name:           folly
-Version:        2021.12.20.00
+Version:        2022.01.17.00
 Release:        %{autorelease}
 Summary:        An open-source C++ library developed and used at Facebook
 
