@@ -14,7 +14,7 @@
 %global _static_builddir static_build
 
 Name:           folly
-Version:        2022.01.17.00
+Version:        2022.02.21.00
 Release:        %{autorelease}
 Summary:        An open-source C++ library developed and used at Facebook
 
@@ -23,6 +23,7 @@ URL:            https://github.com/facebook/folly
 Source0:        %{url}/archive/v%{version}/folly-%{version}.tar.gz
 Patch0:         %{name}-drop-immintrin.patch
 Patch1:         %{name}-badge_revert_for_gcc11.patch
+Patch2:         %{name}-include-cstdint.patch
 
 # Folly is known not to work on big-endian CPUs
 # https://bugzilla.redhat.com/show_bug.cgi?id=1892151
@@ -161,7 +162,14 @@ developing applications that use %{name}.
 
 
 %prep
-%autosetup -p1
+%setup -q
+%patch0 -p1
+%if ! 0%{?el8}
+# el9 and fedora have GCC >= 11
+%patch1 -p1
+%endif
+%patch2 -p1
+
 %if %{with python}
 # this file gets cached starting in 841d5087eda926eac1cb17c4683fd48b247afe50
 # but it depends on executor_api.h which is generated alongside executor.cpp
