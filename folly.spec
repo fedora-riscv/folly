@@ -9,21 +9,17 @@
 %bcond_without python
 
 # Some tests fail to compile
-%bcond_with tests
-
-%global _static_builddir static_build
+%bcond_with check
 
 Name:           folly
-Version:        2022.02.21.00
+Version:        2022.02.28.00
 Release:        %{autorelease}
 Summary:        An open-source C++ library developed and used at Facebook
 
 License:        ASL 2.0
 URL:            https://github.com/facebook/folly
-Source0:        %{url}/archive/v%{version}/folly-%{version}.tar.gz
-Patch0:         %{name}-drop-immintrin.patch
-Patch1:         %{name}-badge_revert_for_gcc11.patch
-Patch2:         %{name}-include-cstdint.patch
+Source:         %{url}/archive/v%{version}/folly-%{version}.tar.gz
+Patch0:         %{name}-badge_revert_for_gcc11.patch
 
 # Folly is known not to work on big-endian CPUs
 # https://bugzilla.redhat.com/show_bug.cgi?id=1892151
@@ -44,7 +40,7 @@ BuildRequires:  double-conversion-devel
 BuildRequires:  fmt-devel
 BuildRequires:  gflags-devel
 BuildRequires:  glog-devel
-%if %{with tests}
+%if %{with check}
 BuildRequires:  gmock-devel
 BuildRequires:  gtest-devel
 %endif
@@ -105,6 +101,7 @@ Requires:       openssl-devel%{?_isa}
 Requires:       snappy-devel%{?_isa}
 Requires:       xz-devel%{?_isa}
 Requires:       zlib-devel%{?_isa}
+Obsoletes:      %{name}-static < 2022.02.28.00-1
 
 %description    devel %{_description}
 
@@ -151,24 +148,12 @@ developing applications that use python3-%{name}.
 %endif
 
 
-%package        static
-Summary:        Static development libraries for %{name}
-Requires:       %{name}-devel%{?_isa} = %{version}-%{release}
-
-%description    static %{_description}
-
-The %{name}-static package contains static libraries for
-developing applications that use %{name}.
-
-
 %prep
 %setup -q
-%patch0 -p1
 %if ! 0%{?el8}
 # el9 and fedora have GCC >= 11
-%patch1 -p1
+%patch0 -p1
 %endif
-%patch2 -p1
 
 %if %{with python}
 # this file gets cached starting in 841d5087eda926eac1cb17c4683fd48b247afe50
@@ -179,28 +164,13 @@ rm folly/python/executor.cpp
 
 
 %build
-# static build
-mkdir %{_static_builddir}
-pushd %{_static_builddir}
-# let's build tests only in the static build since that's what upstream recommends anyway
-%cmake .. \
-%if %{with tests}
-  -DBUILD_TESTS=ON \
-%endif
-  -DBUILD_SHARED_LIBS=OFF \
-  -DCMAKE_INSTALL_DIR=%{_libdir}/cmake/%{name}-static \
-%if 0%{?fedora} >= 36 || 0%{?rhel} >= 9
-  -DLIBDWARF_INCLUDE_DIR=%{_includedir}/libdwarf-0 \
-%endif
-  -DPACKAGE_VERSION=%{version} \
-  -DPYTHON_EXTENSIONS=OFF
-%cmake_build
-popd
-
 %cmake \
   -DBUILD_SHARED_LIBS=ON \
 %if %{with python}
   -DPYTHON_EXTENSIONS=ON \
+%endif
+%if %{with check}
+  -DBUILD_TESTS=ON \
 %endif
   -DCMAKE_INSTALL_DIR=%{_libdir}/cmake/%{name} \
 %if 0%{?fedora} >= 36 || 0%{?rhel} >= 9
@@ -216,28 +186,18 @@ make -C folly/docs
 
 
 %install
-# static build
-pushd %{_static_builddir}
-%cmake_install
-popd
-
-# shared build
 %cmake_install
 
-find $RPM_BUILD_ROOT -name '*.la' -exec rm -f {} ';'
 
-
-%if %{with tests}
+%if %{with check}
 %check
-pushd %{_static_builddir}
 %ctest
-popd
 %endif
 
 
 %files
 %license LICENSE
-%{_libdir}/*.so.*
+%{_libdir}/*.so.%{version}
 
 %files devel
 %doc CODE_OF_CONDUCT.md CONTRIBUTING.md README.md
@@ -264,10 +224,6 @@ popd
 %{python3_sitearch}/%{name}/*.h
 %{python3_sitearch}/%{name}/*.pxd
 %endif
-
-%files static
-%{_libdir}/*.a
-%{_libdir}/cmake/%{name}-static
 
 
 %changelog
