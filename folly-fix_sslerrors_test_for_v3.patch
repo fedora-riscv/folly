@@ -1,0 +1,29 @@
+diff '--color=auto' -ruN folly-2022.02.28.00/folly/io/async/ssl/test/SSLErrorsTest.cpp folly-2022.02.28.00-fix-sslerrors-for-v3/folly/io/async/ssl/test/SSLErrorsTest.cpp
+--- folly-2022.02.28.00/folly/io/async/ssl/test/SSLErrorsTest.cpp	2022-02-26 12:09:52.000000000 -0800
++++ folly-2022.02.28.00-fix-sslerrors-for-v3/folly/io/async/ssl/test/SSLErrorsTest.cpp	2022-03-03 12:03:19.422420703 -0800
+@@ -40,6 +40,10 @@
+   std::string expectedMsg =
+       "AsyncSocketException: error:0b000069:X.509 certificate routines:"
+       "OPENSSL_internal:CERT_ALREADY_IN_HASH_TABLE, type = SSL error";
++#elif defined(FOLLY_OPENSSL_IS_30X)
++  std::string expectedMsg =
++      "AsyncSocketException: error:05800065:x509 certificate routines::"
++      "cert already in hash table, type = SSL error";
+ #else
+   std::string expectedMsg =
+       "AsyncSocketException: error:0B07C065:"
+diff '--color=auto' -ruN folly-2022.02.28.00/folly/portability/OpenSSL.h folly-2022.02.28.00-fix-sslerrors-for-v3/folly/portability/OpenSSL.h
+--- folly-2022.02.28.00/folly/portability/OpenSSL.h	2022-02-26 12:09:52.000000000 -0800
++++ folly-2022.02.28.00-fix-sslerrors-for-v3/folly/portability/OpenSSL.h	2022-03-03 11:44:28.236627101 -0800
+@@ -64,6 +64,11 @@
+   (OPENSSL_VERSION_NUMBER >= 0x1000200fL && \
+    OPENSSL_VERSION_NUMBER < 0x10100000L)
+ #define FOLLY_OPENSSL_IS_110 (OPENSSL_VERSION_NUMBER >= 0x10100000L)
++#define FOLLY_OPENSSL_IS_30X                \
++  (defined(OPENSSL_VERSION_MAJOR) &&        \
++   defined(OPENSSL_VERSION_MINOR) &&        \
++   OPENSSL_VERSION_MAJOR == 3 &&            \
++   OPENSSL_VERSION_MINOR == 0)
+ 
+ // Defined according to version number description in
+ // https://www.openssl.org/docs/man1.1.1/man3/OPENSSL_VERSION_NUMBER.html

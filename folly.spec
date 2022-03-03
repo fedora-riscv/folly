@@ -1,3 +1,19 @@
+%if 0%{?fedora} >= 36
+# FTBFS with GCC 12
+%bcond_without toolchain_clang
+%else
+%bcond_with toolchain_clang
+%endif
+
+%if %{with toolchain_clang}
+%global toolchain clang
+%bcond_without check
+%else
+# Some tests fail to compile
+%bcond_with check
+%bcond_with check
+%endif
+
 %if 0%{?el9}
 # pandoc is not in CS9
 # https://bugzilla.redhat.com/show_bug.cgi?id=2035151
@@ -8,9 +24,6 @@
 
 %bcond_without python
 
-# Some tests fail to compile
-%bcond_with check
-
 Name:           folly
 Version:        2022.02.28.00
 Release:        %{autorelease}
@@ -20,13 +33,21 @@ License:        ASL 2.0
 URL:            https://github.com/facebook/folly
 Source:         %{url}/archive/v%{version}/folly-%{version}.tar.gz
 Patch0:         %{name}-badge_revert_for_gcc11.patch
+Patch1:         %{name}-fix_sslerrors_test_for_v3.patch
+Patch2:         %{name}-fix_codel_test.patch
+Patch3:         %{name}-fix_async_udp_socket_integration_test.patch
 
 # Folly is known not to work on big-endian CPUs
 # https://bugzilla.redhat.com/show_bug.cgi?id=1892151
 ExcludeArch:    s390x
 
 BuildRequires:  cmake
+%if %{with toolchain_clang}
+BuildRequires:  clang
+BuildRequires:  libatomic
+%else
 BuildRequires:  gcc-c++
+%endif
 # Docs dependencies
 %if %{with docs}
 BuildRequires:  pandoc
@@ -150,10 +171,13 @@ developing applications that use python3-%{name}.
 
 %prep
 %setup -q
-%if ! 0%{?el8}
+%if %{without toolchain_clang} && ! 0%{?el8}
 # el9 and fedora have GCC >= 11
 %patch0 -p1
 %endif
+%patch1 -p1
+%patch2 -p1
+%patch3 -p1
 
 %if %{with python}
 # this file gets cached starting in 841d5087eda926eac1cb17c4683fd48b247afe50
