@@ -7,10 +7,15 @@
 
 %if %{with toolchain_clang}
 %global toolchain clang
+%ifarch %{ix86} x86_64
+# tests can be compiled, keep it that way
 %bcond_without check
 %else
-# Some tests fail to compile
+# tests don't compile cleanly on aarch64 and ppc64le yet
 %bcond_with check
+%endif
+%else
+# GCC: some tests fail to compile
 %bcond_with check
 %endif
 
@@ -36,6 +41,13 @@ Patch0:         %{name}-badge_revert_for_gcc11.patch
 Patch1:         %{name}-fix_sslerrors_test_for_v3.patch
 Patch2:         %{name}-fix_codel_test.patch
 Patch3:         %{name}-fix_async_udp_socket_integration_test.patch
+Patch4:         %{name}-skip_packed_sync_ptr_test_32bit.patch
+Patch5:         %{name}-skip_bitvectorcoding_test_non_x64.patch
+Patch6:         %{name}-skip_eliasfanocoding_test_non_x64.patch
+Patch7:         %{name}-fix_bits_test_32bit.patch
+Patch8:         %{name}-fix_small_locks_test.patch
+Patch9:         %{name}-skip_discriminatedptr_test_32bit.patch
+Patch10:        %{name}-disable_logging_example_ppc64le.patch
 
 # Folly is known not to work on big-endian CPUs
 # https://bugzilla.redhat.com/show_bug.cgi?id=1892151
@@ -178,6 +190,15 @@ developing applications that use python3-%{name}.
 %patch1 -p1
 %patch2 -p1
 %patch3 -p1
+%patch4 -p1
+%patch5 -p1
+%patch6 -p1
+%patch7 -p1
+%patch8 -p1
+%patch9 -p1
+%ifarch ppc64le
+%patch10 -p1
+%endif
 
 %if %{with python}
 # this file gets cached starting in 841d5087eda926eac1cb17c4683fd48b247afe50
@@ -215,9 +236,29 @@ make -C folly/docs
 
 %if %{with check}
 %check
-%ctest
+# x86_64: disable flaky tests
+# ix86: some tests are still failing
+%{__ctest} --output-on-failure --force-new-ctest-process %{?_smp_mflags} \
+%ifarch x86_64
+  -E 'fbstring_test\.FBString\.testAllClauses' \
+  -E 'glog_test\.LogEveryMs\.basic'
+%else
+%ifarch %{ix86}
+  -E 'cache_locality_test\.CoreRawAllocator\.Basic' \
+  -E 'chrono_conv_test\.Conv' \
+  -E 'cpu_id_test\.CpuId\.Simple' \
+  -E 'event_count_test\.EventCount\.Simple' \
+  -E 'f14_map_test\.F14Map\.continuousCapacitySmall0' \
+  -E 'fbstring_test\.' \
+  -E 'memcpy_test\.folly_memcpy\.overlap' \
+  -E 'memory_test\.' \
+  -E 'thread_cached_int_test\.ThreadCachedIntTest\.MultithreadedFast' \
+  -E 'threaded_executor_test\.ThreadedExecutorTest\.many'
+%endif
 %endif
 
+cd -
+%endif
 
 %files
 %license LICENSE

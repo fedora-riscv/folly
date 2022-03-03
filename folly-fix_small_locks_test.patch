@@ -1,0 +1,32 @@
+diff '--color=auto' -ruN folly-2022.02.28.00/folly/synchronization/test/SmallLocksTest.cpp folly-2022.02.28.00-fix_small_locks_test/folly/synchronization/test/SmallLocksTest.cpp
+--- folly-2022.02.28.00/folly/synchronization/test/SmallLocksTest.cpp	2022-02-26 12:09:52.000000000 -0800
++++ folly-2022.02.28.00-fix_small_locks_test/folly/synchronization/test/SmallLocksTest.cpp	2022-03-03 16:00:31.971818696 -0800
+@@ -403,6 +403,7 @@
+   simpleStressTest<MicroSpinLock>(duration, threads);
+ }
+ 
++#ifdef FOLLY_PICO_SPIN_LOCK_H_
+ TEST(SmallLocks, PicoSpinLockStressTestLockTwoThreads) {
+   auto duration = std::chrono::seconds{FLAGS_stress_test_seconds};
+   simpleStressTest<PicoSpinLock<std::uint16_t>>(duration, 2);
+@@ -413,6 +414,7 @@
+   auto threads = std::thread::hardware_concurrency();
+   simpleStressTest<PicoSpinLock<std::uint16_t>>(duration, threads);
+ }
++#endif
+ 
+ namespace {
+ template <typename Mutex>
+@@ -503,6 +505,7 @@
+   }
+ }
+ 
++#ifdef FOLLY_PICO_SPIN_LOCK_H_
+ TEST(SmallLocks, PicoSpinLockStressTestTryLockTwoThreads) {
+   auto duration = std::chrono::seconds{FLAGS_stress_test_seconds};
+   simpleStressTestTryLock<PicoSpinLock<std::uint16_t>>(duration, 2);
+@@ -513,3 +516,4 @@
+   auto threads = std::thread::hardware_concurrency();
+   simpleStressTestTryLock<PicoSpinLock<std::uint16_t>>(duration, threads);
+ }
++#endif

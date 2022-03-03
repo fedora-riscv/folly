@@ -1,0 +1,17 @@
+diff '--color=auto' -ruN folly-2022.02.28.00/folly/test/DiscriminatedPtrTest.cpp folly-2022.02.28.00-skip_discriminatedptr_test_32bit/folly/test/DiscriminatedPtrTest.cpp
+--- folly-2022.02.28.00/folly/test/DiscriminatedPtrTest.cpp	2022-02-26 12:09:52.000000000 -0800
++++ folly-2022.02.28.00-skip_discriminatedptr_test_32bit/folly/test/DiscriminatedPtrTest.cpp	2022-03-03 16:18:26.085755753 -0800
+@@ -14,6 +14,8 @@
+  * limitations under the License.
+  */
+ 
++#include <folly/Portability.h>
++#if FOLLY_X64 || FOLLY_AARCH64 || FOLLY_PPC64
+ #include <folly/DiscriminatedPtr.h>
+ 
+ #include <folly/portability/GTest.h>
+@@ -126,3 +128,4 @@
+   p.clear();
+   EXPECT_THROW({ p.apply(v); }, std::invalid_argument);
+ }
++#endif

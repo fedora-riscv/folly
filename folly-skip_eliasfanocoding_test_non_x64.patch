@@ -1,0 +1,17 @@
+diff '--color=auto' -ruN folly-2022.02.28.00/folly/experimental/test/EliasFanoCodingTest.cpp folly-2022.02.28.00-skip_eliasfanocoding_test_non_x64/folly/experimental/test/EliasFanoCodingTest.cpp
+--- folly-2022.02.28.00/folly/experimental/test/EliasFanoCodingTest.cpp	2022-02-26 12:09:52.000000000 -0800
++++ folly-2022.02.28.00-skip_eliasfanocoding_test_non_x64/folly/experimental/test/EliasFanoCodingTest.cpp	2022-03-03 15:13:40.842081789 -0800
+@@ -20,6 +20,8 @@
+ #include <random>
+ #include <vector>
+ 
++#include <folly/Portability.h>
++#if FOLLY_X64
+ #include <folly/Benchmark.h>
+ #include <folly/Random.h>
+ #include <folly/experimental/EliasFanoCoding.h>
+@@ -414,3 +416,4 @@
+ 
+   return ret;
+ }
++#endif

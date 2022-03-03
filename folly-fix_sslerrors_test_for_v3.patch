@@ -1,29 +1,47 @@
-diff '--color=auto' -ruN folly-2022.02.28.00/folly/io/async/ssl/test/SSLErrorsTest.cpp folly-2022.02.28.00-fix-sslerrors-for-v3/folly/io/async/ssl/test/SSLErrorsTest.cpp
---- folly-2022.02.28.00/folly/io/async/ssl/test/SSLErrorsTest.cpp	2022-02-26 12:09:52.000000000 -0800
-+++ folly-2022.02.28.00-fix-sslerrors-for-v3/folly/io/async/ssl/test/SSLErrorsTest.cpp	2022-03-03 12:03:19.422420703 -0800
+From 4ac224710b081c09d29e19e2a4d66ed3b517bc5f Mon Sep 17 00:00:00 2001
+From: Michel Salim <michel@fb.com>
+Date: Fri, 04 Mar 2022 11:25:47 -0800
+Subject: [PATCH] fix SSLErrorsTest for OpenSSL 3.0.x
+
+Summary:
+The error message is different in OpenSSL 3.0.x.
+
+Add `FOLLY_OPENSSL_IS_30X` to detect this version, and
+use it to override the error message we expect.
+
+Differential Revision: D34621704
+---
+
+diff --git a/folly/io/async/ssl/test/SSLErrorsTest.cpp b/folly/io/async/ssl/test/SSLErrorsTest.cpp
+--- a/folly/io/async/ssl/test/SSLErrorsTest.cpp
++++ b/folly/io/async/ssl/test/SSLErrorsTest.cpp
 @@ -40,6 +40,10 @@
    std::string expectedMsg =
        "AsyncSocketException: error:0b000069:X.509 certificate routines:"
        "OPENSSL_internal:CERT_ALREADY_IN_HASH_TABLE, type = SSL error";
-+#elif defined(FOLLY_OPENSSL_IS_30X)
++#elif FOLLY_OPENSSL_IS_30X
 +  std::string expectedMsg =
 +      "AsyncSocketException: error:05800065:x509 certificate routines::"
 +      "cert already in hash table, type = SSL error";
  #else
    std::string expectedMsg =
        "AsyncSocketException: error:0B07C065:"
-diff '--color=auto' -ruN folly-2022.02.28.00/folly/portability/OpenSSL.h folly-2022.02.28.00-fix-sslerrors-for-v3/folly/portability/OpenSSL.h
---- folly-2022.02.28.00/folly/portability/OpenSSL.h	2022-02-26 12:09:52.000000000 -0800
-+++ folly-2022.02.28.00-fix-sslerrors-for-v3/folly/portability/OpenSSL.h	2022-03-03 11:44:28.236627101 -0800
-@@ -64,6 +64,11 @@
+diff --git a/folly/portability/OpenSSL.h b/folly/portability/OpenSSL.h
+--- a/folly/portability/OpenSSL.h
++++ b/folly/portability/OpenSSL.h
+@@ -64,6 +64,13 @@
    (OPENSSL_VERSION_NUMBER >= 0x1000200fL && \
     OPENSSL_VERSION_NUMBER < 0x10100000L)
  #define FOLLY_OPENSSL_IS_110 (OPENSSL_VERSION_NUMBER >= 0x10100000L)
-+#define FOLLY_OPENSSL_IS_30X                \
-+  (defined(OPENSSL_VERSION_MAJOR) &&        \
-+   defined(OPENSSL_VERSION_MINOR) &&        \
-+   OPENSSL_VERSION_MAJOR == 3 &&            \
-+   OPENSSL_VERSION_MINOR == 0)
++// OPENSSL_VERSION_{MAJOR,MINOR} only introduced in 3.0, so need to
++// test if they are defined first
++#if defined(OPENSSL_VERSION_MAJOR) && defined(OPENSSL_VERSION_MINOR)
++#define FOLLY_OPENSSL_IS_30X OPENSSL_VERSION_MAJOR == 3 && OPENSSL_VERSION_MINOR == 0
++#else
++#define FOLLY_OPENSSL_IS_30X false
++#endif
  
  // Defined according to version number description in
  // https://www.openssl.org/docs/man1.1.1/man3/OPENSSL_VERSION_NUMBER.html
+--
+1.7.9.5

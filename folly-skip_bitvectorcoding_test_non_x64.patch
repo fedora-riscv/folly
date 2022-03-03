@@ -1,0 +1,17 @@
+diff '--color=auto' -ruN folly-2022.02.28.00/folly/experimental/test/BitVectorCodingTest.cpp folly-2022.02.28.00-skip_bitvectorcoding_test_non_x64/folly/experimental/test/BitVectorCodingTest.cpp
+--- folly-2022.02.28.00/folly/experimental/test/BitVectorCodingTest.cpp	2022-02-26 12:09:52.000000000 -0800
++++ folly-2022.02.28.00-skip_bitvectorcoding_test_non_x64/folly/experimental/test/BitVectorCodingTest.cpp	2022-03-03 14:52:23.029014616 -0800
+@@ -19,6 +19,8 @@
+ #include <random>
+ #include <vector>
+ 
++#include <folly/Portability.h>
++#if FOLLY_X64
+ #include <folly/Benchmark.h>
+ #include <folly/experimental/BitVectorCoding.h>
+ #include <folly/experimental/Select64.h>
+@@ -211,3 +213,4 @@
+ 
+   return ret;
+ }
++#endif
