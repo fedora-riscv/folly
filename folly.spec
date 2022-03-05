@@ -47,11 +47,29 @@ Patch6:         %{name}-skip_eliasfanocoding_test_non_x64.patch
 Patch7:         %{name}-fix_bits_test_32bit.patch
 Patch8:         %{name}-fix_small_locks_test.patch
 Patch9:         %{name}-skip_discriminatedptr_test_32bit.patch
-Patch10:        %{name}-disable_logging_example_ppc64le.patch
+# /builddir/build/BUILD/folly-2022.02.28.00/folly/experimental/exception_tracer/ExceptionTracer.cpp:131:10: error: no matching function for call to 'isAbiCppException'
+#   return isAbiCppException(tag{}, exc->unwindHeader.exception_class);
+#          ^~~~~~~~~~~~~~~~~
+# /builddir/build/BUILD/folly-2022.02.28.00/folly/experimental/exception_tracer/ExceptionTracer.cpp:117:25: note: candidate function not viable: no known conversion from 'const uint64_t' (aka 'const unsigned long long') to 'const char [8]' for 2nd argument
+# FOLLY_MAYBE_UNUSED bool isAbiCppException(ArmAbiTag, const char (&klazz)[8]) {
+#                         ^
+# /builddir/build/BUILD/folly-2022.02.28.00/folly/experimental/exception_tracer/ExceptionTracer.cpp:122:25: note: candidate function not viable: no known conversion from 'tag' (aka 'folly::exception_tracer::(anonymous namespace)::ArmAbiTag') to 'folly::exception_tracer::(anonymous namespace)::AnyAbiTag' for 1st argument
+# FOLLY_MAYBE_UNUSED bool isAbiCppException(AnyAbiTag, const uint64_t& klazz) {
+#                         ^
+# /builddir/build/BUILD/folly-2022.02.28.00/folly/experimental/exception_tracer/ExceptionTracer.cpp:129:6: note: candidate function not viable: requires single argument 'exc', but 2 arguments were provided
+# bool isAbiCppException(const __cxa_exception* exc) {
+#      ^
+Patch11:        %{name}-disable_exception_tracer_armv7hl.patch
 
 # Folly is known not to work on big-endian CPUs
 # https://bugzilla.redhat.com/show_bug.cgi?id=1892151
 ExcludeArch:    s390x
+%if 0%{?fedora} > 36
+# fmt code breaks: https://bugzilla.redhat.com/show_bug.cgi?id=2061022
+# /usr/bin/ld: ../../../libfolly.so.2022.02.28.00: undefined reference to `int fmt::v8::detail::format_float<__float128>(__float128, int, fmt::v8::detail::float_specs, fmt::v8::detail::buffer<char>&)'
+# /usr/bin/ld: ../../../libfolly.so.2022.02.28.00: undefined reference to `int fmt::v8::detail::snprintf_float<__float128>(__float128, int, fmt::v8::detail::float_specs, fmt::v8::detail::buffer<char>&)'
+ExcludeArch:    ppc64le
+%endif
 
 BuildRequires:  cmake
 %if %{with toolchain_clang}
@@ -198,6 +216,10 @@ developing applications that use python3-%{name}.
 %patch9 -p1
 %ifarch ppc64le
 %patch10 -p1
+%endif
+%ifarch armv7hl
+%patch11 -p1
+rm -rf folly/experimental/exception_tracer
 %endif
 
 %if %{with python}
