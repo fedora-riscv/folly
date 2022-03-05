@@ -64,7 +64,7 @@ Patch11:        %{name}-disable_exception_tracer_armv7hl.patch
 # Folly is known not to work on big-endian CPUs
 # https://bugzilla.redhat.com/show_bug.cgi?id=1892151
 ExcludeArch:    s390x
-%if 0%{?fedora} > 36
+%if 0%{?fedora} >= 36
 # fmt code breaks: https://bugzilla.redhat.com/show_bug.cgi?id=2061022
 # /usr/bin/ld: ../../../libfolly.so.2022.02.28.00: undefined reference to `int fmt::v8::detail::format_float<__float128>(__float128, int, fmt::v8::detail::float_specs, fmt::v8::detail::buffer<char>&)'
 # /usr/bin/ld: ../../../libfolly.so.2022.02.28.00: undefined reference to `int fmt::v8::detail::snprintf_float<__float128>(__float128, int, fmt::v8::detail::float_specs, fmt::v8::detail::buffer<char>&)'
