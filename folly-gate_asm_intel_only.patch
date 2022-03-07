@@ -1,0 +1,87 @@
+diff '--color=auto' -ruN folly-2022.03.07.00/folly/experimental/Instructions.h folly-2022.03.07.00-gate_asm_intel_only/folly/experimental/Instructions.h
+--- folly-2022.03.07.00/folly/experimental/Instructions.h	2022-03-05 22:02:58.000000000 -0800
++++ folly-2022.03.07.00-gate_asm_intel_only/folly/experimental/Instructions.h	2022-03-07 01:19:52.770980432 -0800
+@@ -81,6 +81,7 @@
+   }
+ };
+ 
++#if FOLLY_X64 || defined(__i386__)
+ struct Nehalem : public Default {
+   static bool supported(const folly::CpuId& cpuId = {}) {
+     return cpuId.popcnt();
+@@ -146,6 +147,7 @@
+ #endif
+   }
+ };
++#endif
+ 
+ enum class Type {
+   DEFAULT,
+@@ -155,6 +157,7 @@
+ 
+ inline Type detect() {
+   const static Type type = [] {
++#if FOLLY_X64 || defined(__i386)
+     if (instructions::Haswell::supported()) {
+       VLOG(2) << "Will use folly::compression::instructions::Haswell";
+       return Type::HASWELL;
+@@ -165,12 +168,16 @@
+       VLOG(2) << "Will use folly::compression::instructions::Default";
+       return Type::DEFAULT;
+     }
++#else
++    return Type::DEFAULT;
++#endif
+   }();
+   return type;
+ }
+ 
+ template <class F>
+ auto dispatch(Type type, F&& f) -> decltype(f(std::declval<Default>())) {
++#if FOLLY_X64 || defined(__i386)
+   switch (type) {
+     case Type::HASWELL:
+       return f(Haswell());
+@@ -179,6 +186,9 @@
+     case Type::DEFAULT:
+       return f(Default());
+   }
++#else
++  return f(Default());
++#endif
+ 
+   assume_unreachable();
+ }
+diff '--color=auto' -ruN folly-2022.03.07.00/folly/experimental/Select64.h folly-2022.03.07.00-gate_asm_intel_only/folly/experimental/Select64.h
+--- folly-2022.03.07.00/folly/experimental/Select64.h	2022-03-05 22:02:58.000000000 -0800
++++ folly-2022.03.07.00-gate_asm_intel_only/folly/experimental/Select64.h	2022-03-07 01:00:17.054591304 -0800
+@@ -86,6 +86,7 @@
+   return place + detail::kSelectInByte[byteRank][((x >> place) & 0xFF)];
+ }
+ 
++#if FOLLY_X64 || defined(__i386)
+ template <>
+ FOLLY_ALWAYS_INLINE uint64_t
+ select64<compression::instructions::Haswell>(uint64_t x, uint64_t k) {
+@@ -103,5 +104,6 @@
+   return _tzcnt_u64(_pdep_u64(1ULL << k, x));
+ #endif
+ }
++#endif
+ 
+ } // namespace folly
+diff '--color=auto' -ruN folly-2022.03.07.00/folly/experimental/test/Select64Test.cpp folly-2022.03.07.00-gate_asm_intel_only/folly/experimental/test/Select64Test.cpp
+--- folly-2022.03.07.00/folly/experimental/test/Select64Test.cpp	2022-03-05 22:02:58.000000000 -0800
++++ folly-2022.03.07.00-gate_asm_intel_only/folly/experimental/test/Select64Test.cpp	2022-03-07 01:27:55.383597479 -0800
+@@ -26,9 +26,11 @@
+ extern "C" uint64_t check_select64_default(uint64_t x, uint64_t k) {
+   return folly::select64<folly::compression::instructions::Default>(x, k);
+ }
++#if FOLLY_X64 || defined(__i386)
+ extern "C" uint64_t check_select64_haswell(uint64_t x, uint64_t k) {
+   return folly::select64<folly::compression::instructions::Haswell>(x, k);
+ }
++#endif
+ 
+ class Select64Test : public testing::Test {};
+ 

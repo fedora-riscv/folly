@@ -7,8 +7,9 @@
 
 %if %{with toolchain_clang}
 %global toolchain clang
-%ifarch %{ix86} x86_64
+%ifarch %{ix86} x86_64 aarch64
 # tests can be compiled, keep it that way
+# on aarch64 ctest doesn't seem to find tests yet
 %bcond_without check
 %else
 # tests don't compile cleanly on aarch64 and ppc64le yet
@@ -18,6 +19,9 @@
 # GCC: some tests fail to compile
 %bcond_with check
 %endif
+
+# use this to re-test running all tests
+%bcond_with all_tests
 
 %if 0%{?el9}
 # pandoc is not in CS9
@@ -30,22 +34,23 @@
 %bcond_without python
 
 Name:           folly
-Version:        2022.02.28.00
+Version:        2022.03.07.00
 Release:        %{autorelease}
 Summary:        An open-source C++ library developed and used at Facebook
 
 License:        ASL 2.0
 URL:            https://github.com/facebook/folly
 Source:         %{url}/archive/v%{version}/folly-%{version}.tar.gz
+# GCC-only patches
 Patch0:         %{name}-badge_revert_for_gcc11.patch
-Patch1:         %{name}-fix_sslerrors_test_for_v3.patch
+# Arch-specific patches
 Patch2:         %{name}-fix_codel_test.patch
 Patch3:         %{name}-fix_async_udp_socket_integration_test.patch
 Patch4:         %{name}-skip_packed_sync_ptr_test_32bit.patch
 Patch5:         %{name}-skip_bitvectorcoding_test_non_x64.patch
 Patch6:         %{name}-skip_eliasfanocoding_test_non_x64.patch
 Patch7:         %{name}-fix_bits_test_32bit.patch
-Patch8:         %{name}-fix_small_locks_test.patch
+Patch8:         %{name}-gate_pico_spin_lock_64bit_only.patch
 Patch9:         %{name}-skip_discriminatedptr_test_32bit.patch
 # /builddir/build/BUILD/folly-2022.02.28.00/folly/experimental/exception_tracer/ExceptionTracer.cpp:131:10: error: no matching function for call to 'isAbiCppException'
 #   return isAbiCppException(tag{}, exc->unwindHeader.exception_class);
@@ -60,6 +65,7 @@ Patch9:         %{name}-skip_discriminatedptr_test_32bit.patch
 # bool isAbiCppException(const __cxa_exception* exc) {
 #      ^
 Patch11:        %{name}-disable_exception_tracer_armv7hl.patch
+Patch12:        %{name}-gate_asm_intel_only.patch
 
 # Folly is known not to work on big-endian CPUs
 # https://bugzilla.redhat.com/show_bug.cgi?id=1892151
@@ -205,7 +211,6 @@ developing applications that use python3-%{name}.
 # el9 and fedora have GCC >= 11
 %patch0 -p1
 %endif
-%patch1 -p1
 %patch2 -p1
 %patch3 -p1
 %patch4 -p1
@@ -221,6 +226,7 @@ developing applications that use python3-%{name}.
 %patch11 -p1
 rm -rf folly/experimental/exception_tracer
 %endif
+%patch12 -p1
 
 %if %{with python}
 # this file gets cached starting in 841d5087eda926eac1cb17c4683fd48b247afe50
@@ -258,29 +264,45 @@ make -C folly/docs
 
 %if %{with check}
 %check
+%if %{with all_tests}
+%ctest
+%else
 # x86_64: disable flaky tests
 # ix86: some tests are still failing
-%{__ctest} --output-on-failure --force-new-ctest-process %{?_smp_mflags} \
+cd "%{__cmake_builddir}"
+
 %ifarch x86_64
-  -E 'fbstring_test\.FBString\.testAllClauses' \
-  -E 'glog_test\.LogEveryMs\.basic'
-%else
+EXCLUDED_TESTS='fbstring_test\.FBString\.testAllClauses'
+EXCLUDED_TESTS+='|glog_test\.LogEveryMs\.basic'
+%endif
 %ifarch %{ix86}
-  -E 'cache_locality_test\.CoreRawAllocator\.Basic' \
-  -E 'chrono_conv_test\.Conv' \
-  -E 'cpu_id_test\.CpuId\.Simple' \
-  -E 'event_count_test\.EventCount\.Simple' \
-  -E 'f14_map_test\.F14Map\.continuousCapacitySmall0' \
-  -E 'fbstring_test\.' \
-  -E 'memcpy_test\.folly_memcpy\.overlap' \
-  -E 'memory_test\.' \
-  -E 'thread_cached_int_test\.ThreadCachedIntTest\.MultithreadedFast' \
-  -E 'threaded_executor_test\.ThreadedExecutorTest\.many'
+EXCLUDED_TESTS='cache_locality_test\.CoreRawAllocator\.Basic'
+EXCLUDED_TESTS+='|chrono_conv_test\.Conv'
+EXCLUDED_TESTS+='|cpu_id_test\.CpuId\.Simple'
+EXCLUDED_TESTS+='|event_count_test\.EventCount\.Simple'
+EXCLUDED_TESTS+='|f14_map_test\.F14Map\.continuousCapacitySmall0'
+EXCLUDED_TESTS+='|fbstring_test\.'
+EXCLUDED_TESTS+='|memcpy_test\.folly_memcpy\.overlap'
+EXCLUDED_TESTS+='|memory_test\.'
+EXCLUDED_TESTS+='|thread_cached_int_test\.ThreadCachedIntTest\.MultithreadedFast'
+EXCLUDED_TESTS+='|threaded_executor_test\.ThreadedExecutorTest\.many'
 %endif
+%ifarch aarch64
+EXCLUDED_TESTS='AsyncUDPSocketTest\.AsyncSocketIntegrationTest\.PingPongNotifyMmsg'
+EXCLUDED_TESTS+='|cache_locality_test\.CacheLocality\.LinuxActual'
+EXCLUDED_TESTS+='|cache_locality_test\.CacheLocality\.BenchmarkSysfs'
+EXCLUDED_TESTS+='|cache_locality_test\.Getcpu\.VdsoGetcpu'
+EXCLUDED_TESTS+='|HHWheelTimerTest\.HHWheelTimerTest.'
+EXCLUDED_TESTS+='|memcpy_test\.folly_memcpy\.overlap'
 %endif
+
+%{__ctest} --output-on-failure --force-new-ctest-process %{?_smp_mflags} \
+  -E ${EXCLUDED_TESTS}
 
 cd -
 %endif
+%endif
+
 
 %files
 %license LICENSE

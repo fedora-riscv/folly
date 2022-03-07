@@ -1,26 +1,14 @@
-diff '--color=auto' -ruN folly-2022.02.28.00/folly/lang/test/BitsTest.cpp folly-2022.02.28.00-fix_bits_test_32bit/folly/lang/test/BitsTest.cpp
---- folly-2022.02.28.00/folly/lang/test/BitsTest.cpp	2022-02-26 12:09:52.000000000 -0800
-+++ folly-2022.02.28.00-fix_bits_test_32bit/folly/lang/test/BitsTest.cpp	2022-03-03 15:42:52.211889877 -0800
-@@ -19,6 +19,7 @@
- #include <folly/lang/Bits.h>
+diff '--color=auto' -ruN folly-2022.03.07.00/folly/lang/test/BitsTest.cpp folly-2022.03.07.00-fix_bits_test_32bit/folly/lang/test/BitsTest.cpp
+--- folly-2022.03.07.00/folly/lang/test/BitsTest.cpp	2022-03-05 22:02:58.000000000 -0800
++++ folly-2022.03.07.00-fix_bits_test_32bit/folly/lang/test/BitsTest.cpp	2022-03-07 12:16:55.788098004 -0800
+@@ -317,8 +317,8 @@
  
- #include <algorithm>
-+#include <bits/wordsize.h>
- #include <random>
- #include <vector>
- 
-@@ -315,11 +316,14 @@
-   EXPECT_EQ(x, bi.value);
- }
- 
-+// rand64 and uintptr_t have to be the same size 
-+#if __WORDSIZE == 64
  TEST(Bits, BitCastCompatibilityTest) {
    auto one = folly::Random::rand64();
-   auto pointer = folly::bit_cast<std::uintptr_t>(one);
-   auto two = folly::bit_cast<std::uint64_t>(pointer);
+-  auto pointer = folly::bit_cast<std::uintptr_t>(one);
+-  auto two = folly::bit_cast<std::uint64_t>(pointer);
++  auto dbl = folly::bit_cast<double>(one);
++  auto two = folly::bit_cast<std::uint64_t>(dbl);
    EXPECT_EQ(one, two);
  }
-+#endif
  
- } // namespace folly
