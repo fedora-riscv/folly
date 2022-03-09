@@ -34,7 +34,7 @@
 %bcond_without python
 
 Name:           folly
-Version:        2022.03.07.00
+Version:        2022.03.14.00
 Release:        %{autorelease}
 Summary:        An open-source C++ library developed and used at Facebook
 
@@ -49,7 +49,6 @@ Patch3:         %{name}-fix_async_udp_socket_integration_test.patch
 Patch4:         %{name}-skip_packed_sync_ptr_test_32bit.patch
 Patch5:         %{name}-skip_bitvectorcoding_test_non_x64.patch
 Patch6:         %{name}-skip_eliasfanocoding_test_non_x64.patch
-Patch7:         %{name}-fix_bits_test_32bit.patch
 Patch8:         %{name}-gate_pico_spin_lock_64bit_only.patch
 Patch9:         %{name}-skip_discriminatedptr_test_32bit.patch
 # /builddir/build/BUILD/folly-2022.02.28.00/folly/experimental/exception_tracer/ExceptionTracer.cpp:131:10: error: no matching function for call to 'isAbiCppException'
@@ -65,7 +64,6 @@ Patch9:         %{name}-skip_discriminatedptr_test_32bit.patch
 # bool isAbiCppException(const __cxa_exception* exc) {
 #      ^
 Patch11:        %{name}-disable_exception_tracer_armv7hl.patch
-Patch12:        %{name}-gate_asm_intel_only.patch
 
 # Folly is known not to work on big-endian CPUs
 # https://bugzilla.redhat.com/show_bug.cgi?id=1892151
@@ -216,7 +214,6 @@ developing applications that use python3-%{name}.
 %patch4 -p1
 %patch5 -p1
 %patch6 -p1
-%patch7 -p1
 %patch8 -p1
 %patch9 -p1
 %ifarch ppc64le
@@ -226,7 +223,6 @@ developing applications that use python3-%{name}.
 %patch11 -p1
 rm -rf folly/experimental/exception_tracer
 %endif
-%patch12 -p1
 
 %if %{with python}
 # this file gets cached starting in 841d5087eda926eac1cb17c4683fd48b247afe50
