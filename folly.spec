@@ -216,9 +216,6 @@ developing applications that use python3-%{name}.
 %patch6 -p1
 %patch8 -p1
 %patch9 -p1
-%ifarch ppc64le
-%patch10 -p1
-%endif
 %ifarch armv7hl
 %patch11 -p1
 rm -rf folly/experimental/exception_tracer
