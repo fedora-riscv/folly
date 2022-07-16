@@ -1,0 +1,16 @@
+--- folly-2022.03.14.00/folly/lang/test/TypeInfoTest.cpp.gtest	2022-03-13 13:18:37.000000000 +0900
++++ folly-2022.03.14.00/folly/lang/test/TypeInfoTest.cpp	2022-07-16 15:43:07.258631661 +0900
+@@ -20,11 +20,13 @@
+ 
+ class TypeInfoTest : public testing::Test {};
+ 
++#if 0
+ namespace std {
+ static void PrintTo(type_info const& ti, std::ostream* out) {
+   *out << ti.name();
+ }
+ } // namespace std
++#endif
+ 
+ namespace {
+ struct Foo {};

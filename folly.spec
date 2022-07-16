@@ -1,22 +1,18 @@
 %if 0%{?fedora} >= 36
-# FTBFS with GCC 12
-%bcond_without toolchain_clang
+%bcond_with toolchain_clang
 %else
 %bcond_with toolchain_clang
 %endif
 
 %if %{with toolchain_clang}
 %global toolchain clang
+%endif
 %ifarch %{ix86} x86_64 aarch64
 # tests can be compiled, keep it that way
 # on aarch64 ctest doesn't seem to find tests yet
 %bcond_without check
 %else
 # tests don't compile cleanly on aarch64 and ppc64le yet
-%bcond_with check
-%endif
-%else
-# GCC: some tests fail to compile
 %bcond_with check
 %endif
 
@@ -64,15 +60,28 @@ Patch9:         %{name}-skip_discriminatedptr_test_32bit.patch
 # bool isAbiCppException(const __cxa_exception* exc) {
 #      ^
 Patch11:        %{name}-disable_exception_tracer_armv7hl.patch
+# https://github.com/facebook/folly/issues/1772
+# https://github.com/facebook/folly/pull/1777
+# https://github.com/facebook/folly/commit/c5702590080aa5d0e8d666d91861d64634065132
+Patch12:        %{name}-workaround-gcc12-CWG903.patch
+# gcc considers __builtin_strlen not constant expression, don't use it
+Patch13:        %{name}-workaround-gcc-strlen-not-constant_expr.patch
+# TypeInfoTest with gtest 1.12
+Patch14:        %{name}-typeinfotest-gtest1_12.patch
 
 # Folly is known not to work on big-endian CPUs
 # https://bugzilla.redhat.com/show_bug.cgi?id=1892151
 ExcludeArch:    s390x
 %if 0%{?fedora} >= 36
 # fmt code breaks: https://bugzilla.redhat.com/show_bug.cgi?id=2061022
+# folly/logging/example/logging_example:
 # /usr/bin/ld: ../../../libfolly.so.2022.02.28.00: undefined reference to `int fmt::v8::detail::format_float<__float128>(__float128, int, fmt::v8::detail::float_specs, fmt::v8::detail::buffer<char>&)'
 # /usr/bin/ld: ../../../libfolly.so.2022.02.28.00: undefined reference to `int fmt::v8::detail::snprintf_float<__float128>(__float128, int, fmt::v8::detail::float_specs, fmt::v8::detail::buffer<char>&)'
-ExcludeArch:    ppc64le
+# The above happens with clang, probably because fmt is compiled with gcc,
+# which conflicts with folly when compiled with clang
+%if %{with toolchain_clang}
+#ExcludeArch:    ppc64le -> instead, treated below
+%endif
 %endif
 
 BuildRequires:  cmake
@@ -220,6 +229,11 @@ developing applications that use python3-%{name}.
 %patch11 -p1
 rm -rf folly/experimental/exception_tracer
 %endif
+%patch12 -p1
+%patch13 -p1
+if pkg-config --atleast-version 1.12 gtest ; then
+%patch14 -p1
+fi
 
 %if %{with python}
 # this file gets cached starting in 841d5087eda926eac1cb17c4683fd48b247afe50
@@ -228,6 +242,16 @@ rm -rf folly/experimental/exception_tracer
 rm folly/python/executor.cpp
 %endif
 
+%if %{without toolchain_clang}
+# GCC: kill tests failing to compile for now
+sed -i CMakeLists.txt -e 's|TEST lang_badge_test|#TEST lang_badge_test|'
+%endif
+%if %{with toolchain_clang}
+%ifarch ppc64le
+# folly/logging/example/logging_example: link failure wrt fmt
+sed -i folly/CMakeLists.txt -e '\@logging/example@s|add_subdirectory|#add_subdirectory|'
+%endif
+%endif
 
 %build
 %cmake \
@@ -279,6 +303,12 @@ EXCLUDED_TESTS+='|memcpy_test\.folly_memcpy\.overlap'
 EXCLUDED_TESTS+='|memory_test\.'
 EXCLUDED_TESTS+='|thread_cached_int_test\.ThreadCachedIntTest\.MultithreadedFast'
 EXCLUDED_TESTS+='|threaded_executor_test\.ThreadedExecutorTest\.many'
+%if 0%{?fedora} >= 37 || 0%{?rhel} >= 9
+EXCLUDED_TESTS+='|glog_test\.LogEveryMs\.basic'
+%if %{without toolchain_clang}
+EXCLUDED_TESTS+='|atomic_unordered_map_test\.AtomicUnorderedInsertMapTest/'
+%endif
+%endif
 %endif
 %ifarch aarch64
 EXCLUDED_TESTS='AsyncUDPSocketTest\.AsyncSocketIntegrationTest\.PingPongNotifyMmsg'
@@ -287,6 +317,9 @@ EXCLUDED_TESTS+='|cache_locality_test\.CacheLocality\.BenchmarkSysfs'
 EXCLUDED_TESTS+='|cache_locality_test\.Getcpu\.VdsoGetcpu'
 EXCLUDED_TESTS+='|HHWheelTimerTest\.HHWheelTimerTest.'
 EXCLUDED_TESTS+='|memcpy_test\.folly_memcpy\.overlap'
+%if 0%{?fedora} >= 37 || 0%{?rhel} >= 9
+EXCLUDED_TESTS+='|timeseries_histogram_test\.TimeseriesHistogram\.Percentile'
+%endif
 %endif
 
 %{__ctest} --output-on-failure --force-new-ctest-process %{?_smp_mflags} \
