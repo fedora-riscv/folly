@@ -1,18 +1,14 @@
-%if 0%{?fedora} >= 36
 %bcond_with toolchain_clang
-%else
-%bcond_with toolchain_clang
-%endif
 
 %if %{with toolchain_clang}
 %global toolchain clang
 %endif
-%ifarch %{ix86} x86_64 aarch64
+%ifarch x86_64 aarch64
 # tests can be compiled, keep it that way
 # on aarch64 ctest doesn't seem to find tests yet
 %bcond_without check
 %else
-# tests don't compile cleanly on aarch64 and ppc64le yet
+# tests don't compile cleanly on ppc64le yet
 %bcond_with check
 %endif
 
@@ -30,59 +26,27 @@
 %bcond_without python
 
 Name:           folly
-Version:        2022.03.14.00
+Version:        2022.07.11.00
 Release:        %{autorelease}
 Summary:        An open-source C++ library developed and used at Facebook
 
 License:        ASL 2.0
 URL:            https://github.com/facebook/folly
 Source:         %{url}/archive/v%{version}/folly-%{version}.tar.gz
-# GCC-only patches
-Patch0:         %{name}-badge_revert_for_gcc11.patch
-# Arch-specific patches
-Patch2:         %{name}-fix_codel_test.patch
-Patch3:         %{name}-fix_async_udp_socket_integration_test.patch
-Patch4:         %{name}-skip_packed_sync_ptr_test_32bit.patch
-Patch5:         %{name}-skip_bitvectorcoding_test_non_x64.patch
-Patch6:         %{name}-skip_eliasfanocoding_test_non_x64.patch
-Patch8:         %{name}-gate_pico_spin_lock_64bit_only.patch
-Patch9:         %{name}-skip_discriminatedptr_test_32bit.patch
-# /builddir/build/BUILD/folly-2022.02.28.00/folly/experimental/exception_tracer/ExceptionTracer.cpp:131:10: error: no matching function for call to 'isAbiCppException'
-#   return isAbiCppException(tag{}, exc->unwindHeader.exception_class);
-#          ^~~~~~~~~~~~~~~~~
-# /builddir/build/BUILD/folly-2022.02.28.00/folly/experimental/exception_tracer/ExceptionTracer.cpp:117:25: note: candidate function not viable: no known conversion from 'const uint64_t' (aka 'const unsigned long long') to 'const char [8]' for 2nd argument
-# FOLLY_MAYBE_UNUSED bool isAbiCppException(ArmAbiTag, const char (&klazz)[8]) {
-#                         ^
-# /builddir/build/BUILD/folly-2022.02.28.00/folly/experimental/exception_tracer/ExceptionTracer.cpp:122:25: note: candidate function not viable: no known conversion from 'tag' (aka 'folly::exception_tracer::(anonymous namespace)::ArmAbiTag') to 'folly::exception_tracer::(anonymous namespace)::AnyAbiTag' for 1st argument
-# FOLLY_MAYBE_UNUSED bool isAbiCppException(AnyAbiTag, const uint64_t& klazz) {
-#                         ^
-# /builddir/build/BUILD/folly-2022.02.28.00/folly/experimental/exception_tracer/ExceptionTracer.cpp:129:6: note: candidate function not viable: requires single argument 'exc', but 2 arguments were provided
-# bool isAbiCppException(const __cxa_exception* exc) {
-#      ^
-Patch11:        %{name}-disable_exception_tracer_armv7hl.patch
-# https://github.com/facebook/folly/issues/1772
-# https://github.com/facebook/folly/pull/1777
-# https://github.com/facebook/folly/commit/c5702590080aa5d0e8d666d91861d64634065132
-Patch12:        %{name}-workaround-gcc12-CWG903.patch
+Patch:          %{name}-fix_codel_test.patch
+Patch:          %{name}-fix_async_udp_socket_integration_test.patch
+Patch:          %{name}-skip_eliasfanocoding_test_non_x64.patch
+Patch:          %{name}-gate_pico_spin_lock_64bit_only.patch
 # gcc considers __builtin_strlen not constant expression, don't use it
-Patch13:        %{name}-workaround-gcc-strlen-not-constant_expr.patch
+Patch:          %{name}-workaround-gcc-strlen-not-constant_expr.patch
 # TypeInfoTest with gtest 1.12
-Patch14:        %{name}-typeinfotest-gtest1_12.patch
+Patch:          %{name}-typeinfotest-gtest1_12.patch
+# /builddir/build/BUILD/folly-2022.07.11.00/folly/synchronization/test/AtomicUtilTest.cpp:241:3: internal compiler error: in pop_local_binding, at cp/name-lookup.cc:2474
+#   241 |   for (ref_ atomic : std::array<obj_, Size>{}) {
+#       |   ^~~
+Patch:          %{name}-no-atomicutiltest.patch
 
-# Folly is known not to work on big-endian CPUs
-# https://bugzilla.redhat.com/show_bug.cgi?id=1892151
-ExcludeArch:    s390x
-%if 0%{?fedora} >= 36
-# fmt code breaks: https://bugzilla.redhat.com/show_bug.cgi?id=2061022
-# folly/logging/example/logging_example:
-# /usr/bin/ld: ../../../libfolly.so.2022.02.28.00: undefined reference to `int fmt::v8::detail::format_float<__float128>(__float128, int, fmt::v8::detail::float_specs, fmt::v8::detail::buffer<char>&)'
-# /usr/bin/ld: ../../../libfolly.so.2022.02.28.00: undefined reference to `int fmt::v8::detail::snprintf_float<__float128>(__float128, int, fmt::v8::detail::float_specs, fmt::v8::detail::buffer<char>&)'
-# The above happens with clang, probably because fmt is compiled with gcc,
-# which conflicts with folly when compiled with clang
-%if %{with toolchain_clang}
-#ExcludeArch:    ppc64le -> instead, treated below
-%endif
-%endif
+ExclusiveArch:  x86_64 aarch64 ppc64le
 
 BuildRequires:  cmake
 %if %{with toolchain_clang}
@@ -213,27 +177,7 @@ developing applications that use python3-%{name}.
 
 
 %prep
-%setup -q
-%if %{without toolchain_clang} && ! 0%{?el8}
-# el9 and fedora have GCC >= 11
-%patch0 -p1
-%endif
-%patch2 -p1
-%patch3 -p1
-%patch4 -p1
-%patch5 -p1
-%patch6 -p1
-%patch8 -p1
-%patch9 -p1
-%ifarch armv7hl
-%patch11 -p1
-rm -rf folly/experimental/exception_tracer
-%endif
-%patch12 -p1
-%patch13 -p1
-if pkg-config --atleast-version 1.12 gtest ; then
-%patch14 -p1
-fi
+%autosetup -p1
 
 %if %{with python}
 # this file gets cached starting in 841d5087eda926eac1cb17c4683fd48b247afe50
@@ -288,42 +232,34 @@ make -C folly/docs
 # ix86: some tests are still failing
 cd "%{__cmake_builddir}"
 
-%ifarch x86_64
-EXCLUDED_TESTS='fbstring_test\.FBString\.testAllClauses'
-EXCLUDED_TESTS+='|glog_test\.LogEveryMs\.basic'
-%endif
-%ifarch %{ix86}
-EXCLUDED_TESTS='cache_locality_test\.CoreRawAllocator\.Basic'
-EXCLUDED_TESTS+='|chrono_conv_test\.Conv'
-EXCLUDED_TESTS+='|cpu_id_test\.CpuId\.Simple'
-EXCLUDED_TESTS+='|event_count_test\.EventCount\.Simple'
-EXCLUDED_TESTS+='|f14_map_test\.F14Map\.continuousCapacitySmall0'
-EXCLUDED_TESTS+='|fbstring_test\.'
-EXCLUDED_TESTS+='|memcpy_test\.folly_memcpy\.overlap'
-EXCLUDED_TESTS+='|memory_test\.'
-EXCLUDED_TESTS+='|thread_cached_int_test\.ThreadCachedIntTest\.MultithreadedFast'
-EXCLUDED_TESTS+='|threaded_executor_test\.ThreadedExecutorTest\.many'
-%if 0%{?fedora} >= 37 || 0%{?rhel} >= 9
-EXCLUDED_TESTS+='|glog_test\.LogEveryMs\.basic'
-%if %{without toolchain_clang}
-EXCLUDED_TESTS+='|atomic_unordered_map_test\.AtomicUnorderedInsertMapTest/'
-%endif
-%endif
-%endif
+EXCLUDED_TESTS=
+
 %ifarch aarch64
-EXCLUDED_TESTS='AsyncUDPSocketTest\.AsyncSocketIntegrationTest\.PingPongNotifyMmsg'
-EXCLUDED_TESTS+='|cache_locality_test\.CacheLocality\.LinuxActual'
-EXCLUDED_TESTS+='|cache_locality_test\.CacheLocality\.BenchmarkSysfs'
-EXCLUDED_TESTS+='|cache_locality_test\.Getcpu\.VdsoGetcpu'
-EXCLUDED_TESTS+='|HHWheelTimerTest\.HHWheelTimerTest.'
-EXCLUDED_TESTS+='|memcpy_test\.folly_memcpy\.overlap'
-%if 0%{?fedora} >= 37 || 0%{?rhel} >= 9
+# from https://copr.fedorainfracloud.org/coprs/salimma/folly-testing/build/4642135/
+EXCLUDED_TESTS='-E cache_locality_test\.Getcpu\.VdsoGetcpu'
+EXCLUDED_TESTS+='|HHWheelTimerTest\.HHWheelTimerTest\.FireOnce'
+EXCLUDED_TESTS+='|HHWheelTimerTest\.HHWheelTimerTest\.CancelTimeout'
+EXCLUDED_TESTS+='|HHWheelTimerTest\.HHWheelTimerTest\.DestroyTimeoutSet'
+EXCLUDED_TESTS+='|HHWheelTimerTest\.HHWheelTimerTest\.SlowFast'
+EXCLUDED_TESTS+='|HHWheelTimerTest\.HHWheelTimerTest\.ReschedTest'
+EXCLUDED_TESTS+='|HHWheelTimerTest\.HHWheelTimerTest\.DefaultTimeout'
+EXCLUDED_TESTS+='|HHWheelTimerTest\.HHWheelTimerTest\.IntrusivePtr'
+EXCLUDED_TESTS+='|HHWheelTimerTest\.HHWheelTimerTest\.GetTimeRemaining'
+EXCLUDED_TESTS+='|HHWheelTimerTest\.HHWheelTimerTest\.Level1'
 EXCLUDED_TESTS+='|timeseries_histogram_test\.TimeseriesHistogram\.Percentile'
-%endif
+EXCLUDED_TESTS+='|memcpy_test\.folly_memcpy\.overlap'
+# from https://copr.fedorainfracloud.org/coprs/salimma/folly-testing/build/4642161/
+EXCLUDED_TESTS+='|HHWheelTimerTest\.HHWheelTimerTest\.DeleteWheelInTimeout'
+EXCLUDED_TESTS+='|HHWheelTimerTest\.HHWheelTimerTest\.NegativeTimeout'
+# from https://koji.fedoraproject.org/koji/taskinfo?taskID=89699745
+EXCLUDED_TESTS+='|cache_locality_test\.CacheLocality\.LinuxActual'
+EXCLUDED_TESTS+='|small_locks_test\.SmallLocks\.SpinLockCorrectness'
+EXCLUDED_TESTS+='|locks_test\.SpinLock\.Correctness'
+
 %endif
 
 %{__ctest} --output-on-failure --force-new-ctest-process %{?_smp_mflags} \
-  -E ${EXCLUDED_TESTS}
+  ${EXCLUDED_TESTS}
 
 cd -
 %endif
