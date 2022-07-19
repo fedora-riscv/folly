@@ -234,6 +234,12 @@ cd "%{__cmake_builddir}"
 
 EXCLUDED_TESTS=
 
+%ifarch x86_64
+# flaky tests
+# from https://koji.fedoraproject.org/koji/taskinfo?taskID=89703014
+EXCLUDED_TESTS='-E glog_test\.LogEveryMs\.basic'
+%endif
+
 %ifarch aarch64
 # from https://copr.fedorainfracloud.org/coprs/salimma/folly-testing/build/4642135/
 EXCLUDED_TESTS='-E cache_locality_test\.Getcpu\.VdsoGetcpu'
@@ -255,7 +261,9 @@ EXCLUDED_TESTS+='|HHWheelTimerTest\.HHWheelTimerTest\.NegativeTimeout'
 EXCLUDED_TESTS+='|cache_locality_test\.CacheLocality\.LinuxActual'
 EXCLUDED_TESTS+='|small_locks_test\.SmallLocks\.SpinLockCorrectness'
 EXCLUDED_TESTS+='|locks_test\.SpinLock\.Correctness'
-
+# flaky tests
+# from https://koji.fedoraproject.org/koji/taskinfo?taskID=89701407
+EXCLUDED_TESTS+='|fbstring_test\.FBString\.testAllClauses'
 %endif
 
 %{__ctest} --output-on-failure --force-new-ctest-process %{?_smp_mflags} \
