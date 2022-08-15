@@ -1,0 +1,62 @@
+--- folly-2022.07.11.00/folly/synchronization/test/AtomicUtilTest.cpp.workaround	2022-07-10 07:10:55.000000000 +0900
++++ folly-2022.07.11.00/folly/synchronization/test/AtomicUtilTest.cpp	2022-08-15 17:20:34.469823272 +0900
+@@ -164,7 +164,8 @@
+   constexpr auto Size = 8 / (sizeof(Integer) % 16);
+   static_assert(Size > 0);
+ 
+-  for (ref_ atomic : std::array<obj_, Size>{}) {
++  auto array1_ = std::array<obj_, Size>{};
++  for (ref_ atomic : array1_) {
+     atomic.store(0b0);
+     EXPECT_EQ(fetch_set(atomic, 0), false);
+     EXPECT_EQ(fetch_set(atomic, 1), false);
+@@ -173,7 +174,8 @@
+     EXPECT_EQ(atomic.load(), 0b111);
+   }
+ 
+-  for (ref_ atomic : std::array<obj_, Size>{}) {
++  auto array2_ = std::array<obj_, Size>{};
++  for (ref_ atomic : array2_) {
+     atomic.store(0b1);
+     EXPECT_EQ(fetch_set(atomic, 0), true);
+     EXPECT_EQ(fetch_set(atomic, 0), true);
+@@ -211,7 +213,8 @@
+   constexpr auto Size = 8 / (sizeof(Integer) % 16);
+   static_assert(Size > 0);
+ 
+-  for (ref_ atomic : std::array<obj_, Size>{}) {
++  auto array1_ = std::array<obj_, Size>{};
++  for (ref_ atomic : array1_) {
+     EXPECT_EQ(fetch_reset(atomic, 0), false);
+     EXPECT_EQ(fetch_reset(atomic, 1), false);
+     atomic.store(0b11);
+@@ -220,7 +223,8 @@
+     EXPECT_EQ(atomic.load(), 0);
+   }
+ 
+-  for (ref_ atomic : std::array<obj_, Size>{}) {
++  auto array2_ = std::array<obj_, Size>{};
++  for (ref_ atomic : array2_) {
+     EXPECT_EQ(fetch_reset(atomic, 0), false);
+     EXPECT_EQ(fetch_reset(atomic, 1), false);
+     atomic.store(0b11);
+@@ -238,7 +242,8 @@
+   constexpr auto Size = 8 / (sizeof(Integer) % 16);
+   static_assert(Size > 0);
+ 
+-  for (ref_ atomic : std::array<obj_, Size>{}) {
++  auto array1_ = std::array<obj_, Size>{};
++  for (ref_ atomic : array1_) {
+     EXPECT_EQ(fetch_flip(atomic, 0), false);
+     EXPECT_EQ(fetch_flip(atomic, 1), false);
+     atomic.store(0b11);
+@@ -247,7 +252,8 @@
+     EXPECT_EQ(atomic.load(), 0);
+   }
+ 
+-  for (ref_ atomic : std::array<obj_, Size>{}) {
++  auto array2_ = std::array<obj_, Size>{};
++  for (ref_ atomic : array2_) {
+     EXPECT_EQ(fetch_flip(atomic, 0), false);
+     EXPECT_EQ(fetch_flip(atomic, 1), false);
+     atomic.store(0b10);

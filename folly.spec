@@ -41,10 +41,14 @@ Patch:          %{name}-gate_pico_spin_lock_64bit_only.patch
 Patch:          %{name}-workaround-gcc-strlen-not-constant_expr.patch
 # TypeInfoTest with gtest 1.12
 Patch:          %{name}-typeinfotest-gtest1_12.patch
+# Workaround for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=106230
+# Fixed in gcc-12.1.1-4 (not in -3)
 # /builddir/build/BUILD/folly-2022.07.11.00/folly/synchronization/test/AtomicUtilTest.cpp:241:3: internal compiler error: in pop_local_binding, at cp/name-lookup.cc:2474
 #   241 |   for (ref_ atomic : std::array<obj_, Size>{}) {
 #       |   ^~~
-Patch:          %{name}-no-atomicutiltest.patch
+%if 0%{?fedora} <= 37
+Patch:          %{name}-gcc-pr106230-workaround.patch
+%endif
 
 ExclusiveArch:  x86_64 aarch64 ppc64le
 
@@ -186,10 +190,6 @@ developing applications that use python3-%{name}.
 rm folly/python/executor.cpp
 %endif
 
-%if %{without toolchain_clang}
-# GCC: kill tests failing to compile for now
-sed -i CMakeLists.txt -e 's|TEST lang_badge_test|#TEST lang_badge_test|'
-%endif
 %if %{with toolchain_clang}
 %ifarch ppc64le
 # folly/logging/example/logging_example: link failure wrt fmt
