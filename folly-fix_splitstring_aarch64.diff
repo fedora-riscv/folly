@@ -1,0 +1,11 @@
+--- a/folly/detail/test/SplitStringSimdTest.cpp
++++ b/folly/detail/test/SplitStringSimdTest.cpp
+@@ -157,7 +157,7 @@ void runTestStringSplitOneType(folly::St
+ 
+ #if FOLLY_AARCH64
+   actuals.emplace_back();
+-  PlatformSimdSplitChar<StringSplitAarch64Platform, ignoreEmpty>{}(
++  PlatformSimdSplitByChar<StringSplitAarch64Platform, ignoreEmpty>{}(
+       ',', s, actuals.back());
+ #endif
+ 
