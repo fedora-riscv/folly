@@ -259,6 +259,8 @@ EXCLUDED_TESTS=
 # flaky tests
 # from https://koji.fedoraproject.org/koji/taskinfo?taskID=89703014
 EXCLUDED_TESTS='-E glog_test\.LogEveryMs\.basic'
+# from https://koji.fedoraproject.org/koji/taskinfo?taskID=100358727
+EXCLUDED_TESTS+='|fbstring_test\.FBString\.testAllClauses'
 %endif
 
 %ifarch aarch64
