@@ -152,7 +152,7 @@ Requires:       snappy-devel%{?_isa}
 Requires:       xz-devel%{?_isa}
 Requires:       zlib-devel%{?_isa}
 %if %{without python}
-Obsoletes:      %{name}-python < 2023.04.24.00-1
+Obsoletes:      python3-%{name} < 2023.04.24.00-1
 %endif
 Obsoletes:      %{name}-static < 2022.02.28.00-1
 
