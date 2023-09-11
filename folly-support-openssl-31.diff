@@ -1,0 +1,47 @@
+From bd22ef81cdcab4e43406a48cf8e121fd1b4086a2 Mon Sep 17 00:00:00 2001
+From: Michel Lind <salimma@fedoraproject.org>
+Date: Mon, 11 Sep 2023 11:51:59 -0500
+Subject: [PATCH] SSLErrorsTest: support testing on OpenSSL 3.1.x
+
+Add and use `FOLLY_OPENSSL_IS_3X` since the existing
+`FOLLY_OPENSSL_IS_30X` strictly matches against 3.0.x
+
+Signed-off-by: Michel Lind <salimma@fedoraproject.org>
+---
+ folly/io/async/ssl/test/SSLErrorsTest.cpp | 2 +-
+ folly/portability/OpenSSL.h               | 3 +++
+ 2 files changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/folly/io/async/ssl/test/SSLErrorsTest.cpp b/folly/io/async/ssl/test/SSLErrorsTest.cpp
+index b00fdb9da..d7d3ec085 100644
+--- a/folly/io/async/ssl/test/SSLErrorsTest.cpp
++++ b/folly/io/async/ssl/test/SSLErrorsTest.cpp
+@@ -40,7 +40,7 @@ TEST(SSLErrorsTest, TestMessage) {
+   std::string expectedMsg =
+       "AsyncSocketException: error:0b000069:X.509 certificate routines:"
+       "OPENSSL_internal:CERT_ALREADY_IN_HASH_TABLE, type = SSL error";
+-#elif FOLLY_OPENSSL_IS_30X
++#elif FOLLY_OPENSSL_IS_3X
+   std::string expectedMsg =
+       "AsyncSocketException: error:05800065:x509 certificate routines::"
+       "cert already in hash table, type = SSL error";
+diff --git a/folly/portability/OpenSSL.h b/folly/portability/OpenSSL.h
+index 28d5856f7..c0fee06d0 100644
+--- a/folly/portability/OpenSSL.h
++++ b/folly/portability/OpenSSL.h
+@@ -71,9 +71,12 @@
+ // OPENSSL_VERSION_{MAJOR,MINOR} only introduced in 3.0, so need to
+ // test if they are defined first
+ #if defined(OPENSSL_VERSION_MAJOR) && defined(OPENSSL_VERSION_MINOR)
++#define FOLLY_OPENSSL_IS_3X \
++  OPENSSL_VERSION_MAJOR == 3
+ #define FOLLY_OPENSSL_IS_30X \
+   OPENSSL_VERSION_MAJOR == 3 && OPENSSL_VERSION_MINOR == 0
+ #else
++#define FOLLY_OPENSSL_IS_3X 0
+ #define FOLLY_OPENSSL_IS_30X 0
+ #endif
+ 
+-- 
+2.41.0
+
