@@ -1,0 +1,234 @@
+diff --git a/folly/Conv.h b/folly/Conv.h
+index 753e668af19..e52507fb331 100644
+--- a/folly/Conv.h
++++ b/folly/Conv.h
+@@ -292,8 +292,8 @@ using LastElement = type_pack_element_t<sizeof...(T) - 1, T...>;
+ // which result in significantly more templates being compiled,
+ // though the runtime performance is the same.
+ 
+-template <typename... Ts>
+-const LastElement<Ts...>& getLastElement(const Ts&... ts) {
++template <typename... Ts, typename R = LastElement<Ts...>>
++const R& getLastElement(const Ts&... ts) {
+   return std::get<sizeof...(Ts) - 1>(std::forward_as_tuple(ts...));
+ }
+ 
+@@ -313,8 +313,8 @@ struct LastElementImpl<Ign, Igns...> {
+   }
+ };
+ 
+-template <typename... Ts>
+-const LastElement<Ts...>& getLastElement(const Ts&... ts) {
++template <typename... Ts, typename R = LastElement<Ts...>>
++const R& getLastElement(const Ts&... ts) {
+   return LastElementImpl<Ignored<Ts>...>::call(ts...);
+ }
+ #endif
+@@ -856,12 +856,16 @@ struct ToAppendDelimStrImplAll<std::index_sequence<I...>> {
+     void(_{toAppendDelimStrImplOne(tag<I>{}, d, v, r)...});
+   }
+ };
+-template <class Delimiter, class T, class... Ts>
+-typename std::enable_if<
+-    sizeof...(Ts) >= 2 &&
+-    IsSomeString<typename std::remove_pointer<
+-        detail::LastElement<Ts...>>::type>::value>::type
+-toAppendDelimStrImpl(const Delimiter& delim, const T& v, const Ts&... vs) {
++template <
++    class Delimiter,
++    class T,
++    class... Ts,
++    std::enable_if_t<
++        sizeof...(Ts) >= 2 &&
++            IsSomeString<typename std::remove_pointer<
++                detail::LastElement<Ts...>>::type>::value,
++        int> = 0>
++void toAppendDelimStrImpl(const Delimiter& delim, const T& v, const Ts&... vs) {
+   using seq = std::index_sequence_for<T, Ts...>;
+   ToAppendDelimStrImplAll<seq>::call(delim, v, vs...);
+ }
+@@ -889,12 +893,14 @@ toAppendDelimStrImpl(const Delimiter& delim, const T& v, const Ts&... vs) {
+  *
+  * }
+  */
+-template <class... Ts>
+-typename std::enable_if<
+-    sizeof...(Ts) >= 3 &&
+-    IsSomeString<typename std::remove_pointer<
+-        detail::LastElement<Ts...>>::type>::value>::type
+-toAppend(const Ts&... vs) {
++template <
++    class... Ts,
++    std::enable_if_t<
++        sizeof...(Ts) >= 3 &&
++            IsSomeString<typename std::remove_pointer<
++                detail::LastElement<Ts...>>::type>::value,
++        int> = 0>
++void toAppend(const Ts&... vs) {
+   using seq = std::index_sequence_for<Ts...>;
+   detail::ToAppendStrImplAll<seq>::call(vs...);
+ }
+@@ -910,10 +916,13 @@ toAppend(const Ts&... vs) {
+  * On the other hand if you are appending to a string once, this
+  * will probably save a few calls to malloc.
+  */
+-template <class... Ts>
+-typename std::enable_if<IsSomeString<typename std::remove_pointer<
+-    detail::LastElement<Ts...>>::type>::value>::type
+-toAppendFit(const Ts&... vs) {
++template <
++    class... Ts,
++    std::enable_if_t<
++        IsSomeString<typename std::remove_pointer<
++            detail::LastElement<Ts...>>::type>::value,
++        int> = 0>
++void toAppendFit(const Ts&... vs) {
+   ::folly::detail::reserveInTarget(vs...);
+   toAppend(vs...);
+ }
+@@ -950,12 +959,15 @@ typename std::enable_if<IsSomeString<Tgt>::value>::type toAppendDelim(
+  * Append to string with a delimiter in between elements. Check out
+  * comments for toAppend for details about memory allocation.
+  */
+-template <class Delimiter, class... Ts>
+-typename std::enable_if<
+-    sizeof...(Ts) >= 3 &&
+-    IsSomeString<typename std::remove_pointer<
+-        detail::LastElement<Ts...>>::type>::value>::type
+-toAppendDelim(const Delimiter& delim, const Ts&... vs) {
++template <
++    class Delimiter,
++    class... Ts,
++    std::enable_if_t<
++        sizeof...(Ts) >= 3 &&
++            IsSomeString<typename std::remove_pointer<
++                detail::LastElement<Ts...>>::type>::value,
++        int> = 0>
++void toAppendDelim(const Delimiter& delim, const Ts&... vs) {
+   detail::toAppendDelimStrImpl(delim, vs...);
+ }
+ 
+@@ -964,10 +976,14 @@ toAppendDelim(const Delimiter& delim, const Ts&... vs) {
+  *
+  * Detail in comment for toAppendFit
+  */
+-template <class Delimiter, class... Ts>
+-typename std::enable_if<IsSomeString<typename std::remove_pointer<
+-    detail::LastElement<Ts...>>::type>::value>::type
+-toAppendDelimFit(const Delimiter& delim, const Ts&... vs) {
++template <
++    class Delimiter,
++    class... Ts,
++    std::enable_if_t<
++        IsSomeString<typename std::remove_pointer<
++            detail::LastElement<Ts...>>::type>::value,
++        int> = 0>
++void toAppendDelimFit(const Delimiter& delim, const Ts&... vs) {
+   detail::reserveInTargetDelim(delim, vs...);
+   toAppendDelim(delim, vs...);
+ }
+@@ -979,13 +995,15 @@ void toAppendDelimFit(const De&, const Ts&) {}
+  * to<SomeString>(v1, v2, ...) uses toAppend() (see below) as back-end
+  * for all types.
+  */
+-template <class Tgt, class... Ts>
+-typename std::enable_if<
+-    IsSomeString<Tgt>::value &&
+-        (sizeof...(Ts) != 1 ||
+-         !std::is_same<Tgt, detail::LastElement<void, Ts...>>::value),
+-    Tgt>::type
+-to(const Ts&... vs) {
++template <
++    class Tgt,
++    class... Ts,
++    std::enable_if_t<
++        IsSomeString<Tgt>::value &&
++            (sizeof...(Ts) != 1 ||
++             !std::is_same<Tgt, detail::LastElement<void, Ts...>>::value),
++        int> = 0>
++Tgt to(const Ts&... vs) {
+   Tgt result;
+   toAppendFit(vs..., &result);
+   return result;
+@@ -1030,13 +1048,16 @@ toDelim(const Delim& /* delim */, Src&& value) {
+  * toDelim<SomeString>(delim, v1, v2, ...) uses toAppendDelim() as
+  * back-end for all types.
+  */
+-template <class Tgt, class Delim, class... Ts>
+-typename std::enable_if<
+-    IsSomeString<Tgt>::value &&
+-        (sizeof...(Ts) != 1 ||
+-         !std::is_same<Tgt, detail::LastElement<void, Ts...>>::value),
+-    Tgt>::type
+-toDelim(const Delim& delim, const Ts&... vs) {
++template <
++    class Tgt,
++    class Delim,
++    class... Ts,
++    std::enable_if_t<
++        IsSomeString<Tgt>::value &&
++            (sizeof...(Ts) != 1 ||
++             !std::is_same<Tgt, detail::LastElement<void, Ts...>>::value),
++        int> = 0>
++Tgt toDelim(const Delim& delim, const Ts&... vs) {
+   Tgt result;
+   toAppendDelimFit(delim, vs..., &result);
+   return result;
+diff --git a/folly/Traits.h b/folly/Traits.h
+index a854a016e24..f6fa3be005b 100644
+--- a/folly/Traits.h
++++ b/folly/Traits.h
+@@ -1091,22 +1091,21 @@ using type_pack_element_fallback = _t<decltype(type_pack_element_test<I>::impl(
+ 
+ } // namespace traits_detail
+ 
++//  type_pack_element_t
++//
++//  In the type pack Ts..., the Ith element.
++//
++//  Wraps the builtin __type_pack_element where the builtin is available; where
++//  not, implemented directly.
++//
++//  Under gcc, the builtin is available but does not mangle. Therefore, this
++//  trait must not be used anywhere it might be subject to mangling, such as in
++//  a return-type expression.
++
+ #if FOLLY_HAS_BUILTIN(__type_pack_element)
+ 
+-#if __clang__
+ template <std::size_t I, typename... Ts>
+ using type_pack_element_t = __type_pack_element<I, Ts...>;
+-#else
+-namespace traits_detail {
+-template <std::size_t I, typename... Ts>
+-struct type_pack_element_ {
+-  using type = __type_pack_element<I, Ts...>;
+-};
+-} // namespace traits_detail
+-template <std::size_t I, typename... Ts>
+-using type_pack_element_t =
+-    typename traits_detail::type_pack_element_<I, Ts...>::type;
+-#endif
+ 
+ #else
+ 
+@@ -1115,9 +1114,19 @@ using type_pack_element_t = traits_detail::type_pack_element_fallback<I, Ts...>;
+ 
+ #endif
+ 
++//  type_pack_size_v
++//
++//  The size of a type pack.
++//
++//  A metafunction around sizeof...(Ts).
+ template <typename... Ts>
+ FOLLY_INLINE_VARIABLE constexpr std::size_t type_pack_size_v = sizeof...(Ts);
+ 
++//  type_pack_size_t
++//
++//  The size of a type pack.
++//
++//  A metafunction around index_constant<sizeof...(Ts)>.
+ template <typename... Ts>
+ using type_pack_size_t = index_constant<sizeof...(Ts)>;
+ 
