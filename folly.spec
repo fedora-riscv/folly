@@ -63,7 +63,7 @@ License:        Apache-2.0
 URL:            https://github.com/facebook/folly
 Source:         %{url}/archive/v%{version}/folly-%{version}.tar.gz
 
-ExclusiveArch:  x86_64 aarch64 ppc64le
+ExclusiveArch:  x86_64 aarch64 ppc64le riscv64
 
 BuildRequires:  cmake
 %if %{with toolchain_clang}
